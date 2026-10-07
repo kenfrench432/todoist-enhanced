@@ -9,6 +9,11 @@
  *   product "tag"     -> Todoist label
  */
 
+// ext: the fork's pages, so a new one never edits this union again. Relative,
+// not `@/ext/routes`: tsconfig.node.json compiles this file through e2e and
+// carries no path aliases, the same reason src/test/items.ts imports it this way.
+import type { ExtViewId } from '../ext/routes';
+
 /** Todoist stores priority inverted: 4 is the most urgent (P1), 1 the least (P4). */
 export type TodoistPriority = 1 | 2 | 3 | 4;
 /** The product speaks in P1..P4, which is what the user sees everywhere. */
@@ -276,7 +281,9 @@ export type ViewId =
   | 'label'
   | 'labels'
   | 'matrix'
-  | 'insights';
+  | 'insights'
+  // ext: the fork's pages (src/ext/routes.ts)
+  | ExtViewId;
 
 export type DisplayMode = 'list' | 'board' | 'focus';
 
