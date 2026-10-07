@@ -3,8 +3,9 @@ import { due, item } from '@/test/items';
 import { defaultSettings } from '@/ext/data/defaults';
 import type { Customer } from '@/ext/data/types';
 import {
-  customerEmpty, customerTasks, daysUntil, engagementProgress, engagementVisible,
-  engagementsOf, inPeriod,
+  activeFilterCount, composerLabels, customerEmpty, customerTasks, daysUntil,
+  engagementProgress, engagementVisible, engagementsOf, inPeriod, initialsOf,
+  matchesFilters, shownCustomers, summarise, weekStartOf, NO_FILTERS,
 } from './customers';
 
 /** Tue 29 Sep 2026. This week runs Mon 28 Sep to Sun 4 Oct. */
@@ -171,5 +172,112 @@ describe('customerEmpty and progress', () => {
 
   it('counts nothing as nothing rather than dividing by zero', () => {
     expect(engagementProgress([])).toEqual({ done: 0, total: 0 });
+  });
+});
+
+describe('weekStartOf', () => {
+  /* Todoist counts 1 = Monday .. 7 = Sunday; date-fns counts 0 = Sunday. The
+     same conversion upstream's weekBounds makes, so the two cannot drift. */
+  it('converts the Todoist setting the way upstream does', () => {
+    expect(weekStartOf(1)).toBe(1);   // Monday
+    expect(weekStartOf(7)).toBe(0);   // Sunday
+    expect(weekStartOf(6)).toBe(6);   // Saturday
+    expect(weekStartOf(undefined)).toBe(1);
+  });
+
+  it('makes the page agree with an account that starts weeks on Sunday', () => {
+    // The week holding Tue 29 Sep then runs Sun 27 Sep to Sat 3 Oct.
+    const start = weekStartOf(7);
+    expect(inPeriod(dated('2026-10-03'), 'week', NOW, 'week', start)).toBe(true);
+    expect(inPeriod(dated('2026-10-04'), 'week', NOW, 'week', start)).toBe(false);
+  });
+});
+
+describe('matchesFilters', () => {
+  const who = (over: Partial<Customer>): Customer => ({ ...AVON, ...over });
+
+  it('lets everything through when nothing is chosen', () => {
+    expect(matchesFilters(AVON, NO_FILTERS)).toBe(true);
+    expect(activeFilterCount(NO_FILTERS)).toBe(0);
+  });
+
+  /* Two choices in one group are alternatives. */
+  it('is OR inside a group', () => {
+    const filters = { ...NO_FILTERS, csms: ['alex', 'sam'] };
+    expect(matchesFilters(who({ csm: 'alex' }), filters)).toBe(true);
+    expect(matchesFilters(who({ csm: 'sam' }), filters)).toBe(true);
+    expect(matchesFilters(who({ csm: 'jo' }), filters)).toBe(false);
+  });
+
+  /* Choices in different groups narrow each other. */
+  it('is AND across groups', () => {
+    const filters = { csms: ['alex'], stages: [], tiers: ['P1'] };
+    expect(matchesFilters(who({ csm: 'alex', tier: 'P1' }), filters)).toBe(true);
+    expect(matchesFilters(who({ csm: 'alex', tier: 'P2' }), filters)).toBe(false);
+    expect(matchesFilters(who({ csm: 'jo', tier: 'P1' }), filters)).toBe(false);
+    expect(activeFilterCount(filters)).toBe(2);
+  });
+
+  it('never matches a customer with no CSM against a chosen one', () => {
+    expect(matchesFilters(who({ csm: null }), { ...NO_FILTERS, csms: ['alex'] })).toBe(false);
+  });
+});
+
+describe('shownCustomers', () => {
+  const list: Customer[] = [
+    { ...AVON, id: 'z', name: 'Zephyr', csm: 'alex' },
+    { ...AVON, id: 'a', name: 'Acme', csm: 'sam' },
+    { ...AVON, id: 'm', name: 'Moonrise', csm: 'alex' },
+  ];
+
+  it('sorts A to Z by default', () => {
+    expect(shownCustomers(list, [], {}).map((c) => c.name))
+      .toEqual(['Acme', 'Moonrise', 'Zephyr']);
+  });
+
+  it('follows the custom order when asked', () => {
+    expect(shownCustomers(list, ['z', 'm', 'a'], { sort: 'custom' }).map((c) => c.id))
+      .toEqual(['z', 'm', 'a']);
+  });
+
+  /* A sort that can lose a customer is worse than one in the wrong order. */
+  it('still shows a customer the order has never heard of, after the rest', () => {
+    expect(shownCustomers(list, ['z'], { sort: 'custom' }).map((c) => c.id))
+      .toEqual(['z', 'a', 'm']);
+  });
+
+  it('drops the excluded ones and applies the filters', () => {
+    expect(shownCustomers(list, [], { excluded: ['z'] }).map((c) => c.id)).toEqual(['a', 'm']);
+    expect(shownCustomers(list, [], { filters: { ...NO_FILTERS, csms: ['alex'] } })
+      .map((c) => c.id)).toEqual(['m', 'z']);
+  });
+});
+
+describe('the header’s counts', () => {
+  it('are taken from the cards the page draws', () => {
+    const cards = [
+      { customer: AVON, tasks: [task(), task()], engagements: [task()] },
+      { customer: AVON, tasks: [task()], engagements: [] },
+    ];
+    expect(summarise(cards)).toEqual({ tasks: 3, engagements: 1, customers: 2 });
+    expect(summarise([])).toEqual({ tasks: 0, engagements: 0, customers: 0 });
+  });
+});
+
+describe('composerLabels and initials', () => {
+  it('says what a new task or engagement will carry', () => {
+    expect(composerLabels('task', AVON, settings)).toEqual(['avon']);
+    expect(composerLabels('engagement', AVON, settings)).toEqual(['avon', 'engagement']);
+  });
+
+  it('leaves out a label a customer has not got yet', () => {
+    expect(composerLabels('task', { ...AVON, label: '' }, settings)).toEqual([]);
+  });
+
+  it('takes initials from the first and last word', () => {
+    expect(initialsOf('Aston Martin')).toBe('AM');
+    expect(initialsOf('LVMH Beauty Tech')).toBe('LT');
+    expect(initialsOf('Avon')).toBe('AV');
+    expect(initialsOf('  ')).toBe('?');
   });
 });

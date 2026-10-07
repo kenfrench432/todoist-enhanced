@@ -129,7 +129,7 @@ Ids: `crypto.randomUUID()` sliced to 8 characters.
 
 | Function | Rule |
 | --- | --- |
-| `inPeriod(task, period, now)` | today = due ≤ today (includes overdue). week = due ≤ end of this week (Mon–Sun), **or** labelled with the upstream `week` label and undated. all = everything. |
+| `inPeriod(task, period, now, weekLabel, weekStartsOn)` | today = due ≤ today (includes overdue). week = due ≤ end of this week, **or** labelled with the upstream `week` label and undated. all = everything. **The week starts on the day the account's Todoist `start_day` says**, not always Monday, so this page and upstream's My week can never disagree about which week is meant. Objectives is unaffected: an ISO week number is Monday-based by definition, and the number has to match the dates printed beside it. |
 | `engagementVisible(e, period, showEng, now, soonDays)` | false if `!showEng`. all → true. today → deadline within `soonDays`. week → has an in-period task or deadline within `soonDays`. |
 | `customerEmpty(c)` | no in-period tasks and no visible engagements |
 | `engagementProgress(e)` | done sub-tasks / all sub-tasks (completed count from the completed API, or the number marked done this session) |

@@ -4,6 +4,7 @@ import type { Route } from '@/hooks/useRoute';
 import { isExtView } from './routes';
 import { useTx } from './i18n';
 import { ManagePage } from './views/manage/ManagePage';
+import { CustomersPage } from './views/customers/CustomersPage';
 
 /**
  * Nothing on these pages is estimated yet, so the metrics line has nothing to
@@ -19,7 +20,7 @@ const EMPTY_LOAD: LoadSummary = {
 
 export interface ExtPageProps {
   route: Route;
-  /** Opens a task in the detail panel. The real pages take it up from Phase 4. */
+  /** Opens a task in the detail panel, for the pages that show task rows. */
   onOpen: (id: string) => void;
 }
 
@@ -27,10 +28,11 @@ export interface ExtPageProps {
  * The one page component the fork hands to `App.tsx`: it picks the view itself,
  * so a new page is a case here rather than another line upstream.
  */
-export function ExtPage({ route }: ExtPageProps) {
+export function ExtPage({ route, onOpen }: ExtPageProps) {
   const { tx } = useTx();
   if (!isExtView(route.view)) return null;
   if (route.view === 'manage') return <ManagePage route={route} />;
+  if (route.view === 'customers') return <CustomersPage onOpen={onOpen} />;
 
   return (
     /* `page` and `empty` are upstream's own page frame and empty state, so
