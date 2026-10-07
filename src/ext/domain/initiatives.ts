@@ -1,7 +1,7 @@
 import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { deadlineDate } from '@/domain/dates';
 import { hasLabel } from '@/domain/views';
-import type { Item } from '@/domain/types';
+import type { CompletedItem, Item } from '@/domain/types';
 import type { ExtSettings, Tone } from '@/ext/data/types';
 import { swapPrefixedLabel } from './labels';
 
@@ -166,3 +166,118 @@ export function focusSlugOf(
 /** The open initiatives in a snapshot: tasks carrying the marker. */
 export const initiativesIn = (items: Item[], settings: ExtSettings): Item[] =>
   items.filter((item) => !item.parent_id && hasLabel(item, settings.labels.initiative));
+
+/* ---------- What the Initiatives page needs ---------- */
+
+/**
+ * The most recent completion among an initiative's sub-tasks.
+ *
+ * Read from the snapshot rather than the completed API, which carries no
+ * `parent_id` and so cannot say which initiative a completed task belonged to.
+ * `childIndex` keeps completed children, so they arrive here with their
+ * `completed_at`.
+ *
+ * A sub-task completed long enough ago to have dropped out of the snapshot
+ * gives null, and `initiativeWarnings` then says nothing rather than guessing:
+ * a missing warning, never a wrong one.
+ */
+export function lastDoneAt(children: Item[]): Date | null {
+  let latest: Date | null = null;
+  for (const child of children) {
+    if (!child.checked || !child.completed_at) continue;
+    const at = new Date(child.completed_at);
+    if (Number.isNaN(at.getTime())) continue;
+    if (latest === null || at > latest) latest = at;
+  }
+  return latest;
+}
+
+export type GroupBy = 'focus' | 'status';
+
+export interface InitiativeGroup {
+  key: string;
+  title: string;
+  /** The focus area's colour, where the group is one. */
+  color?: string;
+  tasks: Item[];
+}
+
+/**
+ * The initiatives, under a focus area or under a status.
+ *
+ * Every focus area gets a group even when it is empty, so the page does not
+ * reshuffle as work moves between them. Anything whose focus area is gone
+ * gathers at the end rather than disappearing.
+ */
+export function groupInitiatives(
+  tasks: Item[],
+  by: GroupBy,
+  focusAreas: Array<{ id: string; name: string; label: string; color: string }>,
+  settings: ExtSettings,
+): InitiativeGroup[] {
+  if (by === 'status') {
+    return STATUS_ORDER.map((status) => ({
+      key: status,
+      title: STATUS_LABELS[status],
+      tasks: tasks.filter((task) => readInitiative(task, settings).status === status),
+    })).filter((group) => group.tasks.length > 0);
+  }
+
+  const prefix = settings.labels.focusPrefix;
+  const areaOf = (task: Item) =>
+    focusAreaIdOf(readInitiative(task, settings).focus, focusAreas, prefix);
+
+  const groups: InitiativeGroup[] = focusAreas.map((area) => ({
+    key: area.id,
+    title: area.name,
+    color: area.color,
+    tasks: tasks.filter((task) => areaOf(task) === area.id),
+  }));
+  const rest = tasks.filter((task) => areaOf(task) === null);
+  if (rest.length > 0) groups.push({ key: 'none', title: 'No focus area', tasks: rest });
+  return groups;
+}
+
+/**
+ * The initiatives that have been ticked off, newest first.
+ *
+ * The completed API carries labels, which is enough to recognise one; it
+ * carries no `parent_id`, so a completed *sub-task* cannot be told from a
+ * completed initiative except by that marker.
+ */
+export function completedInitiatives(
+  completed: CompletedItem[], settings: ExtSettings,
+): CompletedItem[] {
+  const marker = settings.labels.initiative.toLowerCase();
+  return completed
+    .filter((row) => (row.labels ?? []).some((label) => label.toLowerCase() === marker))
+    .sort((a, b) => b.completed_at.localeCompare(a.completed_at));
+}
+
+export interface InitiativeSummary {
+  active: number;
+  blocked: number;
+  noNextAction: number;
+}
+
+/**
+ * The line under the title.
+ *
+ * Counted from the same reads the cards are drawn from, so the summary cannot
+ * claim a number the page does not show.
+ */
+export function initiativeSummary(
+  entries: Array<{ initiative: Initiative; children: Item[] }>,
+): InitiativeSummary {
+  let active = 0;
+  let blocked = 0;
+  let noNextAction = 0;
+  for (const { initiative, children } of entries) {
+    if (initiative.status === 'active') active += 1;
+    if (initiative.status === 'blocked') blocked += 1;
+    if (isLive(initiative.status) && children.every((child) => child.checked)) {
+      noNextAction += 1;
+    }
+  }
+  return { active, blocked, noNextAction };
+}

@@ -98,7 +98,7 @@ export function Composer({
       {values.map((value) => (
         <button
           key={value}
-          className={`chip${current === value ? ' on' : ''}`}
+          className="chip"
           aria-pressed={current === value}
           onClick={() => pick(value)}
         >
@@ -151,7 +151,7 @@ export function Composer({
           {[4, 3, 2, 1].map((value) => (
             <button
               key={value}
-              className={`chip${priority === value ? ' on' : ''}`}
+              className="chip"
               aria-pressed={priority === value}
               aria-label={`${tx('composer.priority')} P${5 - value}`}
               onClick={() => setPriority(value)}

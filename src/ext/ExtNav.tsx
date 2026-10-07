@@ -37,7 +37,7 @@ export function ExtNav({ current }: { current: ViewId }) {
     <nav className="ext-nav" aria-label={tx('nav.manage')}>
       {item('customers', 'stack', 'nav.customers')}
 
-      <section className="side-group ext-group">
+      <section className="side-group ext-navgroup">
         <div className="side-head">
           <button
             className="side-headbtn"

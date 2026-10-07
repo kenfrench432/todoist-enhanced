@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { item } from '@/test/items';
 import { defaultSettings } from '@/ext/data/defaults';
+import type { CompletedItem } from '@/domain/types';
 import {
-  initiativeProgress, initiativeWarnings, initiativesIn, isLive,
-  labelsForInitiative, readInitiative,
+  completedInitiatives, groupInitiatives, initiativeProgress, initiativeSummary,
+  initiativeWarnings, initiativesIn, isLive, labelsForInitiative, lastDoneAt,
+  readInitiative,
 } from './initiatives';
 
 const NOW = new Date(2026, 8, 29);
@@ -170,5 +172,110 @@ describe('initiativesIn', () => {
       item({ id: 'other', labels: ['objective'] }),
     ];
     expect(initiativesIn(items, settings).map((i) => i.id)).toEqual(['i1']);
+  });
+});
+
+describe('lastDoneAt', () => {
+  const done = (id: string, at: string | null) =>
+    item({ id, checked: true, completed_at: at });
+
+  it('takes the most recent completion, in any order', () => {
+    const children = [
+      done('a', '2026-09-10T09:00:00Z'),
+      done('b', '2026-09-28T09:00:00Z'),
+      done('c', '2026-09-20T09:00:00Z'),
+    ];
+    expect(lastDoneAt(children)?.toISOString()).toBe('2026-09-28T09:00:00.000Z');
+  });
+
+  it('ignores open tasks and unreadable dates', () => {
+    expect(lastDoneAt([item({ id: 'open' })])).toBeNull();
+    expect(lastDoneAt([done('a', null)])).toBeNull();
+    expect(lastDoneAt([done('a', 'not a date')])).toBeNull();
+  });
+
+  /* A sub-task completed long enough ago to have left the snapshot gives
+     null, and the warning then says nothing rather than guessing. */
+  it('is null with nothing completed, so no warning is invented', () => {
+    expect(lastDoneAt([])).toBeNull();
+    const read = readInitiative(initiative(), settings);
+    expect(initiativeWarnings(read, [item({ id: 'c' })], NOW, lastDoneAt([]))).toEqual([]);
+  });
+});
+
+describe('groupInitiatives', () => {
+  const areas = [
+    { id: 'va', name: 'Value', label: 'focus-tsm-value', color: 'teal' },
+    { id: 'sc', name: 'Scaling', label: 'focus-scaling-bob', color: 'blue' },
+  ];
+  const tasks = [
+    initiative({ id: 'i1', labels: ['initiative', 'focus-tsm-value', 'status-active'] }),
+    initiative({ id: 'i2', labels: ['initiative', 'focus-tsm-value', 'status-blocked'] }),
+    initiative({ id: 'i3', labels: ['initiative', 'focus-gone', 'status-idea'] }),
+  ];
+
+  it('puts each under its focus area, empty areas included', () => {
+    const groups = groupInitiatives(tasks, 'focus', areas, settings);
+    expect(groups.map((g) => g.key)).toEqual(['va', 'sc', 'none']);
+    expect(groups[0].tasks.map((t) => t.id)).toEqual(['i1', 'i2']);
+    expect(groups[1].tasks).toEqual([]);
+  });
+
+  /* An initiative whose area was deleted still has to be reachable. */
+  it('gathers the unfiled ones at the end', () => {
+    const groups = groupInitiatives(tasks, 'focus', areas, settings);
+    expect(groups[2].tasks.map((t) => t.id)).toEqual(['i3']);
+  });
+
+  it('adds no catch-all group when every one is filed', () => {
+    expect(groupInitiatives(tasks.slice(0, 2), 'focus', areas, settings).map((g) => g.key))
+      .toEqual(['va', 'sc']);
+  });
+
+  it('groups by status in the order they matter, skipping empty ones', () => {
+    const groups = groupInitiatives(tasks, 'status', areas, settings);
+    expect(groups.map((g) => g.title)).toEqual(['Active', 'Blocked', 'Idea']);
+  });
+});
+
+describe('completedInitiatives', () => {
+  const row = (id: string, at: string, labels: string[]): CompletedItem => ({
+    id, user_id: 'u', project_id: 'p', section_id: null,
+    content: id, completed_at: at, labels,
+  });
+
+  it('keeps the ones carrying the marker, newest first', () => {
+    const rows = [
+      row('old', '2026-01-01T00:00:00Z', ['initiative']),
+      row('a-subtask', '2026-09-01T00:00:00Z', ['focus-tsm-value']),
+      row('new', '2026-09-28T00:00:00Z', ['initiative', 'focus-tsm-value']),
+    ];
+    expect(completedInitiatives(rows, settings).map((r) => r.id)).toEqual(['new', 'old']);
+  });
+
+  it('copes with a row that has no labels at all', () => {
+    const bare = { ...row('x', '2026-09-01T00:00:00Z', []), labels: undefined };
+    expect(completedInitiatives([bare], settings)).toEqual([]);
+  });
+});
+
+describe('initiativeSummary', () => {
+  const read = (labels: string[]) => readInitiative(item({ labels }), settings);
+
+  it('counts active, blocked and the ones with nothing open', () => {
+    const entries = [
+      { initiative: read(['initiative', 'status-active']), children: [item({ id: 'c' })] },
+      { initiative: read(['initiative', 'status-active']), children: [] },
+      { initiative: read(['initiative', 'status-blocked']), children: [item({ id: 'd' })] },
+      { initiative: read(['initiative', 'status-planned']), children: [item({ id: 'e', checked: true })] },
+      { initiative: read(['initiative', 'status-idea']), children: [] },
+    ];
+    // Two active; one blocked; the second active and the planned one have
+    // nothing open, the idea is not live so it does not count.
+    expect(initiativeSummary(entries)).toEqual({ active: 2, blocked: 1, noNextAction: 2 });
+  });
+
+  it('counts nothing from nothing', () => {
+    expect(initiativeSummary([])).toEqual({ active: 0, blocked: 0, noNextAction: 0 });
   });
 });

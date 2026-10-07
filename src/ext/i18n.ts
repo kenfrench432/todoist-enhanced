@@ -166,6 +166,32 @@ const EN = {
   'composer.add': 'Add',
   'composer.cancel': 'Cancel',
   'composer.added': 'Added \u201c{title}\u201d to {customer} with label @{label}.',
+
+  // Initiatives
+  'initiatives.groupBy': 'Group by',
+  'initiatives.groupBy.focus': 'Focus area',
+  'initiatives.groupBy.status': 'Status',
+  'initiatives.allFocus': 'All focus areas',
+  'initiatives.showCompleted': 'Show completed',
+  'initiatives.supports': 'Supports: {goal}',
+  'initiatives.addPlaceholder': 'Add a task to this initiative',
+  'initiatives.tasks': '{count} open',
+  'initiatives.tasks_one': '1 open',
+  'initiatives.tasks_other': '{count} open',
+  'initiatives.empty': 'No initiatives yet. Add them on Manage.',
+  'initiatives.emptyGroup': 'Nothing here.',
+  'initiatives.noFilterMatches': 'No initiatives in this focus area.',
+  'initiatives.completed': 'Completed',
+  'initiatives.completedNone': 'Nothing completed in the last 90 days.',
+  'initiatives.completedAt': 'Done {date}',
+  'common.loading': 'Loading\u2026',
+  'initiatives.summary.active': '{count} active initiatives',
+  'initiatives.summary.active_one': '1 active initiative',
+  'initiatives.summary.active_other': '{count} active initiatives',
+  'initiatives.summary.blocked': '{count} blocked',
+  'initiatives.summary.noNext': '{count} without a next action',
+  'initiatives.summary.noNext_one': '1 without a next action',
+  'initiatives.summary.noNext_other': '{count} without a next action',
 } as const;
 
 export type ExtKey = keyof typeof EN;
