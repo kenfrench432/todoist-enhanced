@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Kpi } from '@/ext/data/types';
 import {
   daysLeftInYear, elapsedShare, goalYearStart, kpiDelta, kpiPace, kpiValue, paceState,
+  paceSummary,
 } from './pace';
 
 /** Tue 29 Sep 2026: 271 of 365 days gone, a shade under 75%. */
@@ -134,5 +135,30 @@ describe('kpiDelta', () => {
   it('counts 28 days as a month, exactly on the boundary', () => {
     expect(kpiDelta(kpi({ history: [at('2026-09-01', 10), at('2026-09-29', 15)] }))).toBe(5);
     expect(kpiDelta(kpi({ history: [at('2026-09-02', 10), at('2026-09-29', 15)] }))).toBeNull();
+  });
+});
+
+describe('paceSummary', () => {
+  const at = (date: string, value: number) => ({ at: date, value });
+
+  /* A KPI already at its target is not a worry, so it counts as on track
+     rather than earning a tally of its own. */
+  it('counts reached as on track', () => {
+    const reached = kpi({ history: [at('2026-02-01', 100)] });
+    expect(paceSummary([reached], NOW)).toEqual({ onTrack: 1, atRisk: 0, behind: 0 });
+  });
+
+  it('sorts a mixed set into the three', () => {
+    const kpis = [
+      kpi({ id: 'a', history: [at('2026-09-01', 80)] }),   // on track
+      kpi({ id: 'b', history: [at('2026-09-01', 100)] }),  // reached
+      kpi({ id: 'c', history: [at('2026-09-01', 60)] }),   // at risk
+      kpi({ id: 'd', history: [at('2026-09-01', 10)] }),   // behind
+    ];
+    expect(paceSummary(kpis, NOW)).toEqual({ onTrack: 2, atRisk: 1, behind: 1 });
+  });
+
+  it('counts nothing from nothing', () => {
+    expect(paceSummary([], NOW)).toEqual({ onTrack: 0, atRisk: 0, behind: 0 });
   });
 });

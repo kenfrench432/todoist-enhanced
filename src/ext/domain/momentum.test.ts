@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { daysSinceLast, momentum, momentumSince, thisWeek, weeklyCounts } from './momentum';
+import {
+  daysSinceLast, focusCompletions, momentum, momentumSince, thisWeek, weeklyCounts,
+} from './momentum';
 
 /** Tue 29 Sep 2026, in week 40. */
 const NOW = new Date(2026, 8, 29);
@@ -102,5 +104,45 @@ describe('this week against the floor', () => {
     expect(thisWeek([1, 1, 1, 1, 1, 1, 1, 4], 2)).toEqual({ count: 4, belowFloor: false });
     expect(thisWeek([1, 1, 1, 1, 1, 1, 1, 1], 2)).toEqual({ count: 1, belowFloor: true });
     expect(thisWeek([], 2)).toEqual({ count: 0, belowFloor: true });
+  });
+});
+
+describe('focusCompletions', () => {
+  const row = (at: string, labels?: string[]) => ({ completed_at: at, labels });
+
+  /* Attribution is by label, which is what makes this possible where tracing
+     a completed sub-task to its initiative is not: there is no parent_id on a
+     completed item, but there are labels. */
+  it('takes the completions carrying the focus label', () => {
+    const rows = [
+      row('2026-09-28T09:00:00Z', ['initiative', 'focus-tsm-value']),
+      row('2026-09-27T09:00:00Z', ['focus-scaling-bob']),
+      row('2026-09-26T09:00:00Z', ['focus-tsm-value']),
+    ];
+    expect(focusCompletions(rows, 'focus-tsm-value')).toHaveLength(2);
+  });
+
+  it('matches whatever case the label was written in', () => {
+    expect(focusCompletions([row('2026-09-28T09:00:00Z', ['Focus-TSM-Value'])], 'focus-tsm-value'))
+      .toHaveLength(1);
+  });
+
+  /* A task typed straight into Todoist without the focus label does not
+     count towards its area. That is the mapping's limit, not a miscount. */
+  it('ignores a completion with no labels at all', () => {
+    expect(focusCompletions([row('2026-09-28T09:00:00Z')], 'focus-tsm-value')).toEqual([]);
+    expect(focusCompletions([row('2026-09-28T09:00:00Z', [])], 'focus-tsm-value')).toEqual([]);
+  });
+
+  it('skips a completion whose date will not read', () => {
+    expect(focusCompletions([row('not a date', ['focus-tsm-value'])], 'focus-tsm-value'))
+      .toEqual([]);
+  });
+
+  it('feeds weeklyCounts and daysSinceLast directly', () => {
+    const rows = [row('2026-09-28T09:00:00Z', ['focus-tsm-value'])];
+    const dates = focusCompletions(rows, 'focus-tsm-value');
+    expect(weeklyCounts(dates, NOW)[7]).toBe(1);
+    expect(daysSinceLast(dates, NOW)).toBe(1);
   });
 });
