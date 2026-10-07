@@ -38,6 +38,34 @@ upstream file is a merge conflict every week, and all three are harmless.
 
 Re-check them against upstream after a sync, and delete a row once it is fixed.
 
+## Hiding projects
+
+Manage → Customers has a card listing every project; the ones chosen there are
+kept out of **every list in the app** — My week, Upcoming, Someday, Review,
+Insights, search, and the fork's own pages. Nothing is archived in Todoist.
+Hiding a project hides the ones nested under it.
+
+Two deliberate exceptions, both so the setting does not create worse problems
+than it solves:
+
+- **A hidden project's own page still shows its tasks.** Otherwise its sidebar
+  row opens an empty page, which is a worse answer than simply not listing
+  them elsewhere.
+- **The sidebar rows stay** (without their counts, which upstream already
+  hides when zero). Removing them means editing `Sidebar.tsx`'s project-tree
+  building — the busiest upstream file there is, and the likeliest of anything
+  in this fork to conflict on a weekly merge. Not worth it for a row.
+
+This is **the sixth hook point**, and the only one added after Phase 1.
+`useData()` is the single function every view that lists tasks reads from, so
+there is no way to filter them from `src/ext/` alone. It is three marked lines
+in a function upstream rarely touches, and the upstream diff goes from
+5 files / 25 insertions / 1 deletion to **6 files / 30 insertions / 3
+deletions**.
+
+`filters.projects` already exists in upstream's model and does not help: it is
+an *include* list, it is per view, and no UI sets it.
+
 ## Writing demo data
 
 `src/ext/demo.ts` seeds the sample account. Two things about it are easy to

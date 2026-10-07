@@ -63,6 +63,8 @@ function readSettings(value: unknown): ExtSettings {
       focusPrefix: str(labels.focusPrefix, base.labels.focusPrefix),
       statusPrefix: str(labels.statusPrefix, base.labels.statusPrefix),
     },
+    excludedProjectIds: arr(value.excludedProjectIds)
+      .filter((id): id is string => typeof id === 'string' && id.length > 0),
     initiativesProjectId: nullableStr(value.initiativesProjectId),
     objectivesProjectId: nullableStr(value.objectivesProjectId),
     customersProjectId: nullableStr(value.customersProjectId),

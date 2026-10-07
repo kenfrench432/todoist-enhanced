@@ -6,6 +6,7 @@ import type { LoadSummary } from '@/domain/load';
 import { useCompleted } from '@/hooks/useCompleted';
 import { useStore } from '@/store/store';
 import { useToday } from '@/hooks/useToday';
+import { useHiddenProjects } from '@/ext/hooks/useHiddenProjects';
 import { linkObjective } from '@/ext/data/actions';
 import { useExt } from '@/ext/data/store';
 import {
@@ -45,7 +46,14 @@ export function ObjectivesPage() {
   const [adding, setAdding] = useState(false);
 
   const period = useMemo(() => periodOf(cadence, offset, now), [cadence, offset, now]);
-  const all = useMemo(() => Object.values(snapshot.items), [snapshot.items]);
+  /* Read straight from the snapshot rather than useData, because a completed
+     objective still belongs to its period — which means applying the hidden
+     projects filter here by hand, or the fork would contradict itself. */
+  const hide = useHiddenProjects(snapshot);
+  const all = useMemo(
+    () => hide(Object.values(snapshot.items)),
+    [snapshot.items, hide],
+  );
 
   const objectives = useMemo(
     () => objectivesInPeriod(all, data.settings, cadence, period),

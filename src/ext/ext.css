@@ -414,3 +414,7 @@ button.ext-dot:hover { background: var(--hover); }
   .ext-newobjbtn, .ext-moveall { margin-left: 0; }
   .ext-capacity { flex-wrap: wrap; }
 }
+
+.ext-hidden { padding: var(--s3); margin-bottom: var(--s3); }
+.ext-hiddenlist { margin-top: var(--s3); gap: var(--s2); }
+.ext-hiddenlist li { display: inline-flex; }
