@@ -54,8 +54,85 @@ get wrong:
 
 ## Not yet built
 
-The sidebar rows the fork adds carry no counts yet. The counts SPEC asks for —
-customers with in-period tasks, open objectives today, live initiatives — need
-the domain rules from Phase 3, so `ExtNav` renders the rows without them until
-then. The markup is upstream's `navItem`, which already leaves a zero count
-out, so the counts are a small change when the rules exist.
+The sidebar rows carry no counts. SPEC asks for three — customers with
+in-period tasks, open objectives today, live initiatives — and the rules that
+work them out all exist now (`customerTasks`, `objectivesInPeriod`,
+`initiativesIn`). What is missing is only the wiring: `ExtNav` would have to
+read `useExt` and the snapshot, which it deliberately does not, because it
+renders inside upstream's `Sidebar` on every page in the app. The markup is
+upstream's `navItem` and already leaves a zero count out, so this is a small
+change whenever it is wanted.
+
+## Releasing
+
+The production copy is **https://todoist-ui.pages.dev/**, built by Cloudflare
+Pages from `main`.
+
+Two environment variables on the Pages project:
+
+```
+NODE_VERSION = 22
+PUBLIC_URL   = https://todoist-ui.pages.dev/
+```
+
+`NODE_VERSION` is belt-and-braces — `.nvmrc` pins 22 and Pages reads it.
+**`PUBLIC_URL` is not optional**, and getting it wrong looks like a bug in the
+app rather than a misconfiguration: the build writes `oauth/client.json` from
+it, Todoist fetches that file to identify the app, and if the variable is
+missing the build *silently* falls back to upstream's official URL. Sign-in
+then fails with `invalid_client` and nothing on screen explains why. The
+trailing slash matters, and the value must be the host you actually sign in
+on — not the `pages.dev` address underneath a custom domain.
+
+After a deploy, four checks:
+
+```bash
+curl -o /dev/null -w '%{http_code}\n'    https://todoist-ui.pages.dev/icon-192.png
+curl -o /dev/null -w '%{content_type}\n' https://todoist-ui.pages.dev/manifest.webmanifest
+curl -s https://todoist-ui.pages.dev/oauth/client.json | head -c 60
+curl -sI https://todoist-ui.pages.dev/ | grep -i content-security-policy
+```
+
+Expected: `200`; `application/manifest+json`; a `client_id` **equal to the host
+above**; and a CSP line. The manifest type and the CSP come from
+`public/_headers`, which is this fork's replacement for upstream's `.htaccess`
+— Cloudflare Pages does not read `.htaccess`. Keep the CSP in step with
+`preview.headers` in `vite.config.ts`; if a view ever fetches from another
+host, add it to `connect-src` in both.
+
+Upstream merges arrive through the **Sync upstream** workflow: every Monday,
+or on demand from the Actions tab. It opens a pull request, Pages builds a
+preview for it, and you review and merge. `UPDATING.md` has the detail.
+
+## What this fork adds
+
+Five pages, for running a technical success manager's week:
+
+| Page | What it answers |
+| --- | --- |
+| **Customers** (`#/customers`) | What is on for each customer today, this week, or at all — their loose tasks and their engagements, with a composer that applies the right labels without anyone typing an `@`. |
+| **Initiatives** (`#/initiatives`) | Which internal projects are moving and which are stuck — grouped by focus area or status, with warnings for blocked, no next action, and gone quiet. |
+| **Goals & KPIs** (`#/goals`) | Two different questions side by side: are the numbers moving (KPI pace against the share of the year gone), and is anyone doing anything about it (completed actions per focus area over 8 weeks). |
+| **Objectives** (`#/objectives`) | A few outcomes per day, week, month and quarter, each supporting the level above it. |
+| **Manage** (`#/manage`) | Where the lists the other four read from are set up: customers, CSMs, stages, goals and KPIs, initiatives. |
+
+**Everything Todoist can hold, Todoist holds.** A customer is a label; an
+engagement, an initiative and an objective are tasks carrying marker labels; a
+target is a `deadline`. Nothing is duplicated into a database. What Todoist has
+no field for — a customer's CSM, stage and tier, goals and KPIs, the links
+between objectives, a period's notes — is one JSON document in its own Inbox
+comment, the same mechanism upstream already uses for its settings.
+
+**The fork is 56 files under `src/ext/`, and five lines of upstream.**
+
+That was the single rule the whole build was shaped around, and it held for all
+ten phases: `git diff upstream/main -- src ':!src/ext'` reads **5 files
+changed, 25 insertions, 1 deletion** — the `ViewId` union, the router's known
+list, two lines in `App.tsx`, one in `Sidebar.tsx`, and the stylesheet import.
+Every weekly upstream merge has those five lines to reconcile and nothing else.
+
+It is covered by **655 unit tests** across 13 files and **33 end-to-end
+journeys** in five `e2e/ext-*.spec.ts` files. The rules are pure functions in
+`src/ext/domain/` that take "now" as an argument rather than reading the clock,
+which is why they can be tested on a date chosen to break them (Tue 29 Sep
+2026: week 40 straddles a month end and Q3 ends the next day).
