@@ -69,6 +69,11 @@ const EN = {
   'manage.customers.added': 'Customer added.',
   'manage.customers.where': 'New customer tasks go to',
   'manage.customers.lastStage': 'The last stage cannot be removed.',
+  'manage.hidden.title': 'Projects hidden from this app',
+  'manage.hidden.hint':
+    'Their tasks are left out of every list — My week, Upcoming, search, and the fork\u2019s own pages. Hiding a project hides the ones nested under it. Nothing is archived in Todoist, and a hidden project\u2019s own page still shows its tasks.',
+  'manage.hidden.none': 'Nothing is hidden.',
+  'manage.hidden.count': '{count} hidden',
   'manage.customers.moveUp': 'Move up',
   'manage.customers.moveDown': 'Move down',
   'manage.customers.tone': 'Change the colour',

@@ -26,6 +26,14 @@ export interface ExtSettings {
     focusPrefix: string;
     statusPrefix: string;
   };
+  /**
+   * Projects kept out of every list in this app.
+   *
+   * Not archived in Todoist — these still exist and still get used, they just
+   * have no business on a page about customer work. Excluding a parent takes
+   * its sub-projects with it.
+   */
+  excludedProjectIds: string[];
   /** Where new initiatives go. Null means the Inbox. */
   initiativesProjectId: string | null;
   objectivesProjectId: string | null;

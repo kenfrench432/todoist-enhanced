@@ -72,6 +72,7 @@ export const defaultSettings = (): ExtSettings => ({
     focusPrefix: 'focus-',
     statusPrefix: 'status-',
   },
+  excludedProjectIds: [],
   initiativesProjectId: null,
   objectivesProjectId: null,
   customersProjectId: null,

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Icon } from '@/components/Icon';
 import { Select } from '@/components/Select';
+import { markerStyle } from '@/domain/colors';
 import type { Item, Snapshot } from '@/domain/types';
 import { useStore } from '@/store/store';
 import {
@@ -9,6 +10,7 @@ import {
 } from '@/ext/data/actions';
 import { useExt } from '@/ext/data/store';
 import type { ExtData, Tier } from '@/ext/data/types';
+import { pickableProjects } from '@/ext/domain/projects';
 import { slug } from '@/ext/domain/labels';
 import { customerCounts, duplicateName, unlinkedLabels } from '@/ext/domain/manage';
 import { useTx } from '@/ext/i18n';
@@ -242,6 +244,8 @@ export function CustomersTab(
 
       <p className="ext-hint">{tx('manage.customers.hint')}</p>
 
+      <HiddenProjects data={data} snapshot={snapshot} />
+
       <section className="card ext-unlinked">
         <h2 className="ext-cardtitle">{tx('manage.customers.unlinked')}</h2>
         {unlinked.length === 0
@@ -263,6 +267,54 @@ export function CustomersTab(
           )}
       </section>
     </div>
+  );
+}
+
+/**
+ * The projects this app leaves out of every list.
+ *
+ * It lives on Manage because that is the fork's only settings surface. If more
+ * app-wide settings arrive this deserves a Settings tab of its own; one card
+ * does not justify one yet.
+ */
+function HiddenProjects({ data, snapshot }: { data: ExtData; snapshot: Snapshot }) {
+  const { tx } = useTx();
+  const update = useExt((state) => state.update);
+  const hidden = data.settings.excludedProjectIds;
+  const options = pickableProjects(snapshot.projects, snapshot.user?.inbox_project_id);
+
+  const toggle = (id: string) => update((current) => setSettings(current, {
+    excludedProjectIds: hidden.includes(id)
+      ? hidden.filter((entry) => entry !== id)
+      : [...hidden, id],
+  }));
+
+  return (
+    <section className="card ext-hidden">
+      <h2 className="ext-cardtitle">
+        {tx('manage.hidden.title')}
+        {hidden.length > 0 && <span className="ext-count">{hidden.length}</span>}
+      </h2>
+      <p className="ext-hint">{tx('manage.hidden.hint')}</p>
+      {options.length === 0
+        ? <p className="ext-hint">{tx('manage.hidden.none')}</p>
+        : (
+          <ul className="chiprow ext-hiddenlist">
+            {options.map((project) => (
+              <li key={project.id}>
+                <button
+                  className="chip"
+                  aria-pressed={hidden.includes(project.id)}
+                  style={markerStyle(project.color)}
+                  onClick={() => toggle(project.id)}
+                >
+                  {project.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+    </section>
   );
 }
 
