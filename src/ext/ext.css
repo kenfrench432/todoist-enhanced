@@ -11,8 +11,10 @@
  * are hooks for the later phases and for the end-to-end tests to aim at.
  */
 
-/* The group of pages under "Focus" ends where the projects below it begin. */
-.ext-nav .ext-group {
+/* The group of pages under "Focus" ends where the projects below it begin.
+   Named apart from the pages' own .ext-group: one class meaning two things is
+   how a selector ends up matching the sidebar from inside a page. */
+.ext-nav .ext-navgroup {
   margin-bottom: var(--s3);
 }
 
@@ -224,4 +226,53 @@ button.ext-dot:hover { background: var(--hover); }
   .ext-pop { width: min(280px, calc(100vw - 32px)); }
   .ext-custhead { flex-wrap: wrap; }
   .ext-custhead .ext-count { margin-left: 0; }
+}
+
+/* ---------- Initiatives ---------- */
+
+.ext-focusfilter { margin: var(--s3) 0; }
+.ext-chipcount {
+  margin-left: var(--s1); padding: 0 4px; border-radius: var(--r-full);
+  background: var(--hover); color: var(--faint);
+  font-size: var(--fs-11); font-variant-numeric: tabular-nums;
+}
+.chip[aria-pressed="true"] .ext-chipcount { background: var(--accent-soft); color: inherit; }
+
+.ext-initcard { padding: var(--s3); margin-bottom: var(--s2); }
+.ext-initcardhead { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.ext-initicon { color: var(--marker); }
+.ext-initname { flex: 1; min-width: 0; font-size: var(--fs-14); font-weight: 600; }
+.ext-focuschip, .ext-statuschip { background: var(--marker-soft); color: var(--marker); }
+
+.ext-warnings { margin: var(--s2) 0 0; padding: 0; list-style: none; display: flex;
+  flex-wrap: wrap; gap: var(--s2); }
+.ext-warning {
+  display: inline-flex; align-items: center; gap: var(--s1);
+  padding: 2px var(--s2); border-radius: var(--r-full); font-size: var(--fs-11); font-weight: 600;
+}
+.ext-warning.red { background: var(--late-wash); color: var(--late); }
+.ext-warning.amber { background: var(--wash-quick-deep, var(--hover)); color: var(--p2); }
+
+.ext-initmeta {
+  display: flex; align-items: center; gap: var(--s3); margin-top: var(--s3); flex-wrap: wrap;
+}
+/* Capped, or an empty bar stretches the card and reads as a divider. */
+.ext-initmeta .ext-progress { flex: 0 1 200px; min-width: 80px; margin: 0; }
+.ext-initmeta .ext-hint { margin: 0; white-space: nowrap; }
+.ext-goallink { margin-left: auto; }
+.ext-subtasks { margin-top: var(--s2); }
+.ext-subtasks .ext-addrow { margin-top: var(--s2); }
+
+.ext-donerow {
+  display: flex; align-items: center; gap: var(--s2);
+  padding: var(--s2) 0; border-bottom: 1px solid var(--border);
+  font-size: var(--fs-13);
+}
+.ext-donerow .ic { color: var(--done, var(--faint)); }
+.ext-doneitem { flex: 1; min-width: 0; color: var(--muted); text-decoration: line-through; }
+.ext-donerow .ext-hint { margin: 0; white-space: nowrap; }
+
+@media (max-width: 760px) {
+  .ext-goallink { margin-left: 0; }
+  .ext-initmeta .ext-progress { flex: 1 1 100%; }
 }

@@ -118,7 +118,7 @@ export function GoalsTab({ data, items }: { data: ExtData; items: Item[] }) {
           {data.focusAreas.map((area) => (
             <button
               key={area.id}
-              className={`chip${newFocus === area.id ? ' on' : ''}`}
+              className="chip"
               aria-pressed={newFocus === area.id}
               onClick={() => setNewFocus(area.id)}
             >

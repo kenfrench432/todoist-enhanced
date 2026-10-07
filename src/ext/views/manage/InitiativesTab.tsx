@@ -227,7 +227,7 @@ function NewInitiative({ data }: { data: ExtData }) {
       {values.map((value) => (
         <button
           key={value}
-          className={`chip${current === value ? ' on' : ''}`}
+          className="chip"
           aria-pressed={current === value}
           onClick={() => onPick(value)}
         >
