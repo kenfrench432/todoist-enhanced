@@ -129,6 +129,40 @@ export function labelsForInitiative(
   return next;
 }
 
+/**
+ * The focus area a `focus-` label slug belongs to.
+ *
+ * `readInitiative` gives back what the label says — the slug after the prefix
+ * — while everything else works in focus-area ids. This is the one place that
+ * knows they are different things.
+ */
+export function focusAreaIdOf(
+  slug: string | null,
+  areas: Array<{ id: string; label: string }>,
+  prefix: string,
+): string | null {
+  if (slug === null) return null;
+  const wanted = `${prefix}${slug}`.toLowerCase();
+  const found = areas.find((area) => area.label.toLowerCase() === wanted)
+    /* An area registered by id rather than by label still resolves, so a
+       document written before the labels were set up is not orphaned. */
+    ?? areas.find((area) => area.id.toLowerCase() === slug.toLowerCase());
+  return found?.id ?? null;
+}
+
+/** The `focus-` label slug for a focus-area id, for writing one back. */
+export function focusSlugOf(
+  id: string,
+  areas: Array<{ id: string; label: string }>,
+  prefix: string,
+): string | null {
+  const area = areas.find((entry) => entry.id === id);
+  if (!area) return null;
+  return area.label.toLowerCase().startsWith(prefix.toLowerCase())
+    ? area.label.slice(prefix.length)
+    : area.label;
+}
+
 /** The open initiatives in a snapshot: tasks carrying the marker. */
 export const initiativesIn = (items: Item[], settings: ExtSettings): Item[] =>
   items.filter((item) => !item.parent_id && hasLabel(item, settings.labels.initiative));

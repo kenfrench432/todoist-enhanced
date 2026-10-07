@@ -3,6 +3,7 @@ import type { LoadSummary } from '@/domain/load';
 import type { Route } from '@/hooks/useRoute';
 import { isExtView } from './routes';
 import { useTx } from './i18n';
+import { ManagePage } from './views/manage/ManagePage';
 
 /**
  * Nothing on these pages is estimated yet, so the metrics line has nothing to
@@ -29,6 +30,7 @@ export interface ExtPageProps {
 export function ExtPage({ route }: ExtPageProps) {
   const { tx } = useTx();
   if (!isExtView(route.view)) return null;
+  if (route.view === 'manage') return <ManagePage route={route} />;
 
   return (
     /* `page` and `empty` are upstream's own page frame and empty state, so

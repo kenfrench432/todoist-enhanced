@@ -15,3 +15,134 @@
 .ext-nav .ext-group {
   margin-bottom: var(--s3);
 }
+
+/* ---------- Manage ---------- */
+
+.ext-manage .tabs button { display: flex; align-items: center; gap: var(--s2); }
+.ext-tabcount {
+  min-width: 18px; padding: 0 5px; border-radius: var(--r-full);
+  background: var(--hover); color: var(--faint);
+  font-size: var(--fs-11); font-variant-numeric: tabular-nums;
+}
+.tabs button[aria-selected="true"] .ext-tabcount {
+  background: var(--accent-soft); color: var(--accent-dark);
+}
+
+.ext-tab { display: flex; flex-direction: column; gap: var(--s5); margin-top: var(--s5); }
+.ext-cardtitle { margin: 0 0 var(--s3); font-size: var(--fs-13); font-weight: 700; }
+.ext-grouptitle {
+  display: flex; align-items: center; gap: var(--s2);
+  margin: 0 0 var(--s3); font-size: var(--fs-13); font-weight: 700;
+}
+.ext-group { display: flex; flex-direction: column; gap: var(--s3); }
+.ext-count {
+  min-width: 18px; padding: 0 6px; border-radius: var(--r-full);
+  background: var(--hover); color: var(--faint);
+  font-size: var(--fs-11); font-weight: 600; font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.ext-addrow { display: flex; gap: var(--s2); align-items: center; }
+.ext-addrow .textfield { flex: 1; min-width: 0; }
+.ext-hint { margin: var(--s2) 0 0; color: var(--muted); font-size: var(--fs-12); }
+.ext-quiet { color: var(--faint); }
+.ext-error { margin: var(--s2) 0 0; color: var(--late); font-size: var(--fs-12); }
+.ext-invalid { border-color: var(--late); }
+.ext-labelchip {
+  padding: 1px 6px; border-radius: var(--r-full);
+  background: var(--hover); color: var(--muted);
+  font-family: inherit; font-size: var(--fs-11);
+}
+
+/* The two editors sit side by side where there is room, and stack where there
+   is not — a phone gets one column, not a squeezed two. */
+/* align-items: start, or a collapsed card is stretched to the height of
+   the open one beside it and reads as an empty box. */
+.ext-twocards {
+  display: grid; gap: var(--s3); grid-template-columns: 1fr 1fr; align-items: start;
+}
+.ext-disclosed { padding: 0; }
+.ext-disclosed-head {
+  width: 100%; min-height: var(--ctl-h); padding: var(--s3);
+  display: flex; align-items: center; gap: var(--s2);
+  font-size: var(--fs-13); font-weight: 600; text-align: left; color: var(--text);
+}
+.ext-disclosed-title { flex: 0 0 auto; }
+.ext-disclosed-sum {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  color: var(--faint); font-weight: 400; font-size: var(--fs-12);
+}
+.ext-disclosed-head .ic { margin-left: auto; color: var(--faint); }
+.ext-disclosed-sum + .ic { margin-left: 0; }
+.ext-disclosed-body { padding: 0 var(--s3) var(--s3); }
+
+.ext-namelist { display: flex; flex-direction: column; gap: var(--s2); }
+.ext-namerow { display: flex; align-items: center; gap: var(--s2); }
+.ext-namerow .textfield { flex: 1; min-width: 0; }
+.ext-stagetools { display: flex; align-items: center; gap: 2px; }
+.ext-stagetools .iconbtn:disabled { opacity: .35; }
+
+.ext-dot {
+  width: 14px; height: 14px; flex: 0 0 auto;
+  display: grid; place-items: center; border-radius: var(--r-full);
+}
+.ext-dot > span {
+  width: 9px; height: 9px; border-radius: var(--r-full); background: var(--marker);
+}
+button.ext-dot:hover { background: var(--hover); }
+
+.ext-projectfield { max-width: 320px; }
+
+.ext-tablewrap { overflow-x: auto; }
+.ext-table { width: 100%; border-collapse: collapse; font-size: var(--fs-13); }
+.ext-table th {
+  padding: 0 var(--s2) var(--s2);
+  color: var(--faint); font-size: var(--fs-11); font-weight: 600; text-align: left;
+}
+.ext-table td { padding: var(--s1) var(--s2); border-top: 1px solid var(--border); }
+.ext-table .ext-num { text-align: right; font-variant-numeric: tabular-nums; }
+.ext-table .ext-rowactions { text-align: right; white-space: nowrap; }
+.ext-namecell { display: flex; align-items: center; gap: var(--s2); }
+.ext-namecell .textfield { flex: 1; min-width: 0; }
+.ext-numfield { width: 80px; text-align: right; }
+.ext-unitfield { width: 72px; }
+
+.ext-confirm { display: inline-flex; align-items: center; gap: 2px; }
+.ext-danger { border-color: var(--late); color: var(--late); }
+.ext-danger:hover { background: var(--late-wash); }
+
+.ext-unlinkedlist { gap: var(--s2); }
+.ext-unlinkedlist li { display: inline-flex; align-items: center; gap: var(--s2); }
+
+.ext-goalhead, .ext-inithead { display: flex; gap: var(--s2); align-items: center; }
+.ext-goalhead .textfield { flex: 1; min-width: 0; }
+.ext-title { font-weight: 600; }
+.ext-goalfoot, .ext-initfoot {
+  display: flex; align-items: center; gap: var(--s3); margin-top: var(--s3);
+}
+.ext-goalfoot .ext-hint, .ext-initfoot .ext-hint { margin: 0; margin-right: auto; }
+.ext-initcontrols {
+  display: grid; gap: var(--s3); margin-top: var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+.ext-blocked { margin-top: var(--s3); }
+.ext-focuschips { margin-top: var(--s3); }
+.ext-goal, .ext-initiative, .ext-newgoal, .ext-newinit, .ext-unlinked { padding: var(--s3); }
+
+/* The phone layout: the tables become cards, as SPEC asks. */
+@media (max-width: 760px) {
+  .ext-twocards { grid-template-columns: 1fr; }
+  .ext-table thead { display: none; }
+  .ext-table, .ext-table tbody, .ext-table tr, .ext-table td { display: block; width: 100%; }
+  .ext-table tr {
+    margin-bottom: var(--s3); padding: var(--s2);
+    border: 1px solid var(--border); border-radius: var(--r-lg);
+  }
+  .ext-table td { border-top: 0; display: flex; align-items: center; gap: var(--s2); }
+  .ext-table td::before {
+    content: attr(data-label); flex: 0 0 96px;
+    color: var(--faint); font-size: var(--fs-11);
+  }
+  .ext-table .ext-num, .ext-table .ext-rowactions { text-align: left; }
+  .ext-numfield, .ext-unitfield { width: 100%; }
+}
