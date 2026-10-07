@@ -6,6 +6,7 @@ import { useTx } from './i18n';
 import { ManagePage } from './views/manage/ManagePage';
 import { CustomersPage } from './views/customers/CustomersPage';
 import { InitiativesPage } from './views/initiatives/InitiativesPage';
+import { GoalsPage } from './views/goals/GoalsPage';
 
 /**
  * Nothing on these pages is estimated yet, so the metrics line has nothing to
@@ -35,6 +36,7 @@ export function ExtPage({ route, onOpen }: ExtPageProps) {
   if (route.view === 'manage') return <ManagePage route={route} />;
   if (route.view === 'customers') return <CustomersPage onOpen={onOpen} />;
   if (route.view === 'initiatives') return <InitiativesPage onOpen={onOpen} />;
+  if (route.view === 'goals') return <GoalsPage route={route} />;
 
   return (
     /* `page` and `empty` are upstream's own page frame and empty state, so

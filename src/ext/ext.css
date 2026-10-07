@@ -276,3 +276,74 @@ button.ext-dot:hover { background: var(--hover); }
   .ext-goallink { margin-left: 0; }
   .ext-initmeta .ext-progress { flex: 1 1 100%; }
 }
+
+/* ---------- Goals & KPIs ---------- */
+
+.ext-momentumgrid {
+  display: grid; gap: var(--s3); margin: var(--s4) 0;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.ext-momentum {
+  display: flex; flex-direction: column; gap: var(--s2);
+  padding: var(--s3); text-align: left;
+}
+.ext-momentum:hover { border-color: var(--border-strong); }
+.ext-momentum.selected { border-color: var(--accent); background: var(--accent-tint); }
+.ext-momenthead { display: flex; align-items: center; gap: var(--s2); }
+.ext-momentname { flex: 1; min-width: 0; font-size: var(--fs-13); font-weight: 600; }
+.ext-momentchip { background: var(--marker-soft); color: var(--marker); font-weight: 700; }
+.ext-why {
+  color: var(--faint); font-size: var(--fs-11); font-weight: 400;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.ext-momentbars { display: block; }
+.ext-momentum .ext-hint { margin: 0; }
+.ext-belowfloor { color: var(--late); }
+
+.ext-goalstop {
+  display: flex; align-items: center; gap: var(--s3);
+  margin-bottom: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border);
+}
+.ext-goalstop .ext-hint { margin: 0; margin-right: auto; font-weight: 600; }
+
+.ext-goalcard { padding: var(--s3); margin-bottom: var(--s3); }
+.ext-goalcardhead { display: flex; align-items: center; gap: var(--s2); margin-bottom: var(--s3); }
+.ext-goaltitle { margin: 0; flex: 1; min-width: 0; font-size: var(--fs-14); font-weight: 600; }
+
+.ext-kpirow { padding: var(--s2) 0; border-top: 1px solid var(--border); }
+.ext-kpitop { display: flex; align-items: center; gap: var(--s2); }
+.ext-kpiname { flex: 1; min-width: 0; font-size: var(--fs-13); }
+.ext-kpitop .ext-hint { margin: 0; white-space: nowrap; }
+
+/* The bar says how far; the marker says how far it should have got by now,
+   which is what turns a number into a judgement. */
+.ext-pacebar {
+  position: relative; height: 6px; margin: var(--s2) 0;
+  border-radius: var(--r-full); background: var(--hover); overflow: visible;
+}
+.ext-pacefill {
+  display: block; height: 100%; border-radius: var(--r-full); background: var(--accent);
+}
+.ext-pacemark {
+  position: absolute; top: -3px; width: 2px; height: 12px;
+  border-radius: 1px; background: var(--text); opacity: .55;
+}
+.ext-kpifoot { display: flex; align-items: center; gap: var(--s2); }
+.ext-kpifoot .ext-hint { margin: 0; }
+.ext-pacechip { background: var(--marker-soft); color: var(--marker); font-weight: 700; }
+
+.ext-linked {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2);
+  margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border);
+}
+.ext-linked .ext-hint { margin: 0; }
+.ext-statusdot {
+  width: 7px; height: 7px; flex: 0 0 auto;
+  border-radius: var(--r-full); background: var(--marker);
+}
+.ext-initchip { gap: var(--s1); }
+
+@media (max-width: 760px) {
+  .ext-momentumgrid { grid-template-columns: 1fr; }
+  .ext-kpitop { flex-wrap: wrap; }
+}

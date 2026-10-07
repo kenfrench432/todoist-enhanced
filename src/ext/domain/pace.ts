@@ -124,3 +124,27 @@ export function kpiDelta(kpi: Kpi): number | null {
   }
   return null;
 }
+
+export interface PaceSummary {
+  onTrack: number;
+  atRisk: number;
+  behind: number;
+}
+
+/**
+ * How the KPIs are doing between them.
+ *
+ * A KPI that has already reached its target counts as on track: it is not a
+ * worry, and a separate "reached" tally would make the line longer without
+ * making it say more.
+ */
+export function paceSummary(kpis: Kpi[], now: Date, yearStartMonth = 1): PaceSummary {
+  const summary: PaceSummary = { onTrack: 0, atRisk: 0, behind: 0 };
+  for (const kpi of kpis) {
+    const { state } = kpiPace(kpi, now, yearStartMonth);
+    if (state === 'reached' || state === 'onTrack') summary.onTrack += 1;
+    else if (state === 'atRisk') summary.atRisk += 1;
+    else summary.behind += 1;
+  }
+  return summary;
+}

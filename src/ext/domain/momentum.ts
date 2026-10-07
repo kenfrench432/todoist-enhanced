@@ -78,3 +78,30 @@ export function thisWeek(weekly: number[], floor: number): { count: number; belo
 /** The window the completed API has to be asked for, to fill these counts. */
 export const momentumSince = (now: Date, weeks = WEEKS): Date =>
   startOfISOWeek(subWeeks(startOfDay(now), weeks - 1));
+
+/**
+ * When the work on a focus area was actually done.
+ *
+ * Attribution is by **label**, which is why this works where Phase 6's "quiet
+ * for N days" could not: a `CompletedItem` carries no `parent_id`, so a
+ * completed sub-task cannot be traced to its initiative — but it does carry
+ * `labels`, and the focus label is one of them.
+ *
+ * That holds because a task added to an initiative through the app inherits
+ * its parent's labels. A task typed straight into Todoist without the focus
+ * label will not count towards its area, which is a limit of the mapping
+ * rather than a fault in the counting.
+ */
+export function focusCompletions(
+  completed: Array<{ completed_at: string; labels?: string[] }>,
+  focusLabel: string,
+): Date[] {
+  const wanted = focusLabel.toLowerCase();
+  const dates: Date[] = [];
+  for (const row of completed) {
+    if (!(row.labels ?? []).some((label) => label.toLowerCase() === wanted)) continue;
+    const at = new Date(row.completed_at);
+    if (!Number.isNaN(at.getTime())) dates.push(at);
+  }
+  return dates;
+}
