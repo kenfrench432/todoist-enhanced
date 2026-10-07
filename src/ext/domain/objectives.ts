@@ -1,6 +1,6 @@
-import { toApiDate } from '@/domain/dates';
+import { dueDate, toApiDate } from '@/domain/dates';
 import { hasLabel } from '@/domain/views';
-import type { Item } from '@/domain/types';
+import type { CompletedItem, Item } from '@/domain/types';
 import type { ExtSettings } from '@/ext/data/types';
 import { swapPrefixedLabel } from './labels';
 import {
@@ -146,3 +146,92 @@ export function capacity(objectives: Item[], cap: number): Capacity {
 /** The cap for a cadence, from settings. */
 export const capFor = (cadence: Cadence, settings: ExtSettings): number =>
   settings.objectiveCaps[cadence];
+
+/* ---------- What the Objectives page needs ---------- */
+
+/**
+ * The objectives of one cadence whose period this is — open and done alike.
+ *
+ * Placed by **due date**, which is what decides an objective's period: it is
+ * due on the period's last day. The items passed in should come from the
+ * snapshot rather than `openItems`, so a completed objective is still counted
+ * towards its period's "2 of 3 done" instead of vanishing from it.
+ */
+export function objectivesInPeriod(
+  items: Item[],
+  settings: ExtSettings,
+  cadence: Cadence,
+  period: { start: Date; end: Date },
+): Item[] {
+  return items.filter((item) => {
+    if (item.is_deleted) return false;
+    if (!hasLabel(item, settings.labels.objective)) return false;
+    if (readObjective(item, settings).cadence !== cadence) return false;
+    const due = dueDate(item);
+    return due !== null && containsDay(period, due);
+  });
+}
+
+/**
+ * Objectives the snapshot has forgotten, recovered from the completed API.
+ *
+ * An approximation, and only ever a fallback. A `CompletedItem` carries no due
+ * date, so the only thing to place it by is when it was finished — and an
+ * objective finished a week late belongs to the period it was *due* in, not
+ * the one it was closed in. The snapshot knows the due date and is used first;
+ * this fills in older periods it no longer holds, where a rough answer beats
+ * an empty one.
+ */
+export function mergeCompleted(
+  fromSnapshot: Item[],
+  completed: CompletedItem[],
+  settings: ExtSettings,
+  cadence: Cadence,
+  period: { start: Date; end: Date },
+): CompletedItem[] {
+  const known = new Set(fromSnapshot.map((item) => item.id));
+  const marker = settings.labels.objective.toLowerCase();
+  const periodLabel = `${settings.labels.periodPrefix}${PERIOD_NAME[cadence]}`.toLowerCase();
+
+  return completed.filter((row) => {
+    const id = row.task_id ?? row.id;
+    if (known.has(id)) return false;
+    const labels = (row.labels ?? []).map((label) => label.toLowerCase());
+    if (!labels.includes(marker) || !labels.includes(periodLabel)) return false;
+    const at = new Date(row.completed_at);
+    return !Number.isNaN(at.getTime()) && containsDay(period, at);
+  });
+}
+
+/** "done of total" for a cadence's current period, for the tab. */
+export function cadenceCounts(
+  objectives: Item[], extra = 0,
+): { done: number; total: number } {
+  const done = objectives.filter((item) => item.checked).length;
+  return { done: done + extra, total: objectives.length + extra };
+}
+
+/** The question each cadence opens and closes with (SPEC §5). */
+export const PROMPTS: Record<Cadence, { start: string; end: string }> = {
+  d: {
+    start: 'Pick the few outcomes that make today a good day.',
+    end: 'What got done, what moves to tomorrow, and why?',
+  },
+  w: {
+    start: 'Choose the outcomes for the week, each supporting a monthly objective.',
+    end: 'What did I finish, what carries over, and what should I stop doing?',
+  },
+  m: {
+    start: 'Turn the quarter into three outcomes for the month.',
+    end: 'Check the KPIs, score each objective, and note what changes next month.',
+  },
+  q: {
+    start: 'Set the quarter against your goals and KPIs.',
+    end: 'Score each objective, look at KPI movement, and write what you will do differently.',
+  },
+};
+
+/** What "move to the next period" is called, per cadence. */
+export const NEXT_NAME: Record<Cadence, string> = {
+  d: 'tomorrow', w: 'next week', m: 'next month', q: 'next quarter',
+};

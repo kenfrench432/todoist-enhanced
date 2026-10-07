@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as idb from '@/db/idb';
 import { useStore } from '@/store/store';
+import { remapTaskIds } from './actions';
 import { readExtDoc } from './comment';
 import { defaultExtData } from './defaults';
 import { migrate } from './migrate';
@@ -79,6 +80,25 @@ export async function flushExtWrite(): Promise<void> {
 
   await app.apply(write.commands, (snapshot) => applyExtWrite(snapshot, write, inbox));
 }
+
+/**
+ * Keeps the links pointing at tasks that still exist.
+ *
+ * A task created here has a temporary id until Todoist answers. Anything
+ * linked to it in the meantime has to follow it to its real id, or the link
+ * names something that has stopped existing.
+ */
+useStore.subscribe((state, previous) => {
+  if (state.resolvedIds === previous.resolvedIds || state.demo) return;
+  const fresh: Record<string, string> = {};
+  for (const [temp, real] of Object.entries(state.resolvedIds)) {
+    if (previous.resolvedIds[temp] !== real) fresh[temp] = real;
+  }
+  if (Object.keys(fresh).length === 0) return;
+  const current = useExt.getState().data;
+  const next = remapTaskIds(current, fresh);
+  if (next !== current) useExt.getState().update(() => next);
+});
 
 /**
  * Takes the account's document when a sync brings a newer one.

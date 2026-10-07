@@ -7,6 +7,7 @@ import { ManagePage } from './views/manage/ManagePage';
 import { CustomersPage } from './views/customers/CustomersPage';
 import { InitiativesPage } from './views/initiatives/InitiativesPage';
 import { GoalsPage } from './views/goals/GoalsPage';
+import { ObjectivesPage } from './views/objectives/ObjectivesPage';
 
 /**
  * Nothing on these pages is estimated yet, so the metrics line has nothing to
@@ -37,6 +38,7 @@ export function ExtPage({ route, onOpen }: ExtPageProps) {
   if (route.view === 'customers') return <CustomersPage onOpen={onOpen} />;
   if (route.view === 'initiatives') return <InitiativesPage onOpen={onOpen} />;
   if (route.view === 'goals') return <GoalsPage route={route} />;
+  if (route.view === 'objectives') return <ObjectivesPage />;
 
   return (
     /* `page` and `empty` are upstream's own page frame and empty state, so
