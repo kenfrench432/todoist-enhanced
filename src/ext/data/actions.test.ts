@@ -4,7 +4,7 @@ import {
   linkInitiativeGoal, linkObjective, linkObjectiveGoal, logKpiValue, moveStage,
   pruneLinks, removeCsm, removeCustomer, removeFocusArea, removeGoal, removeKpi,
   removeStage, renameCustomer, renameCustomerLabel, renameStage, setCustomer,
-  setCustomerOrder, setNote, setSettings,
+  remapTaskIds, setCustomerOrder, setNote, setSettings,
 } from './actions';
 import { slug } from '@/ext/domain/labels';
 import { defaultExtData } from './defaults';
@@ -251,6 +251,44 @@ describe('every action is pure', () => {
     removeStage(data, 'healthy');
     removeGoal(data, 'nope');
     setNote(data, 'k', 'v');
+    expect(data).toEqual(copy);
+  });
+});
+
+describe('remapTaskIds', () => {
+  /* A task created here has a temporary id until Todoist answers. A link made
+     in the same breath has to follow it, or it names something that has
+     stopped existing and pruneLinks quietly drops it. */
+  it('follows a task from its temp id to its real one', () => {
+    let data = linkObjective(base(), 'temp-1', 'parent-1');
+    data = linkInitiativeGoal(data, 'temp-2', 'g1');
+    data = linkObjectiveGoal(data, 'temp-1', 'g1');
+
+    data = remapTaskIds(data, { 'temp-1': 'real-1', 'temp-2': 'real-2' });
+    expect(data.objectiveParents).toEqual({ 'real-1': 'parent-1' });
+    expect(data.initiativeGoals).toEqual({ 'real-2': 'g1' });
+    expect(data.objectiveGoals).toEqual({ 'real-1': 'g1' });
+  });
+
+  /* The parent can have been created just as recently as its child. */
+  it('remaps the parent as well as the child', () => {
+    const data = remapTaskIds(
+      linkObjective(base(), 'temp-child', 'temp-parent'),
+      { 'temp-child': 'real-child', 'temp-parent': 'real-parent' },
+    );
+    expect(data.objectiveParents).toEqual({ 'real-child': 'real-parent' });
+  });
+
+  it('leaves alone the links it knows nothing about', () => {
+    const data = linkObjective(base(), 'real-1', 'real-2');
+    expect(remapTaskIds(data, { 'temp-9': 'real-9' })).toBe(data);
+    expect(remapTaskIds(data, {})).toBe(data);
+  });
+
+  it('keeps the document it was given untouched', () => {
+    const data = linkObjective(base(), 'temp-1', 'p');
+    const copy = structuredClone(data);
+    remapTaskIds(data, { 'temp-1': 'real-1' });
     expect(data).toEqual(copy);
   });
 });

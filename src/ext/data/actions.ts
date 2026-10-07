@@ -301,3 +301,41 @@ export const setSettings = (data: ExtData, change: Partial<ExtSettings>): ExtDat
   ({ ...data, settings: { ...data.settings, ...change } });
 
 export type { Tier };
+
+/**
+ * Rewrites the task ids a link names, after Todoist has resolved them.
+ *
+ * A task created in the app lives under a temporary id until Todoist answers
+ * with the real one. A link made in the same breath — the parent chosen on the
+ * new-objective form, say — would otherwise name an id that stops existing a
+ * second later, and `pruneLinks` would quietly drop it. The store applies this
+ * whenever `resolvedIds` grows.
+ *
+ * Both sides are remapped: an objective's parent can have been created just as
+ * recently as the objective itself.
+ */
+export function remapTaskIds(data: ExtData, mapping: Record<string, string>): ExtData {
+  if (Object.keys(mapping).length === 0) return data;
+  const id = (value: string) => mapping[value] ?? value;
+
+  const remapKeys = (map: Record<string, string>): Record<string, string> =>
+    Object.fromEntries(Object.entries(map).map(([task, value]) => [id(task), value]));
+
+  const changed = (map: Record<string, string>) =>
+    Object.keys(map).some((task) => task in mapping);
+
+  const parentsNeedWork = changed(data.objectiveParents)
+    || Object.values(data.objectiveParents).some((parent) => parent in mapping);
+  if (!changed(data.initiativeGoals) && !changed(data.objectiveGoals) && !parentsNeedWork) {
+    return data;
+  }
+
+  return {
+    ...data,
+    initiativeGoals: remapKeys(data.initiativeGoals),
+    objectiveGoals: remapKeys(data.objectiveGoals),
+    objectiveParents: Object.fromEntries(
+      Object.entries(data.objectiveParents).map(([task, parent]) => [id(task), id(parent)]),
+    ),
+  };
+}

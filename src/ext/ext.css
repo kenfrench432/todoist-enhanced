@@ -268,7 +268,7 @@ button.ext-dot:hover { background: var(--hover); }
   padding: var(--s2) 0; border-bottom: 1px solid var(--border);
   font-size: var(--fs-13);
 }
-.ext-donerow .ic { color: var(--done, var(--faint)); }
+.ext-donerow .ic { color: var(--ok); }
 .ext-doneitem { flex: 1; min-width: 0; color: var(--muted); text-decoration: line-through; }
 .ext-donerow .ext-hint { margin: 0; white-space: nowrap; }
 
@@ -346,4 +346,71 @@ button.ext-dot:hover { background: var(--hover); }
 @media (max-width: 760px) {
   .ext-momentumgrid { grid-template-columns: 1fr; }
   .ext-kpitop { flex-wrap: wrap; }
+}
+
+/* ---------- Objectives ---------- */
+
+.ext-periodbar { display: flex; align-items: center; gap: var(--s2); margin: var(--s4) 0 var(--s3); }
+.ext-periodtext { display: flex; flex-direction: column; min-width: 0; }
+.ext-periodtext strong { font-size: var(--fs-14); }
+.ext-periodtext .ext-hint { margin: 0; }
+.ext-newobjbtn { margin-left: auto; }
+
+.ext-capacity {
+  display: flex; align-items: center; gap: var(--s3);
+  padding: var(--s2) 0; margin-bottom: var(--s3); border-bottom: 1px solid var(--border);
+}
+.ext-capacity .ext-hint { margin: 0; }
+.ext-slots { display: flex; gap: var(--s1); flex: 0 0 auto; }
+.ext-slot {
+  width: 10px; height: 10px; border-radius: var(--r-full);
+  border: 1px solid var(--border-strong);
+}
+/* --ok is the app's green, and it has a dark-mode value of its own. */
+.ext-slot.done { border-color: var(--ok); background: var(--ok); }
+.ext-slot.open { border-color: var(--accent); background: var(--accent); }
+.ext-slot.free { background: transparent; }
+/* Over the cap is shown, never refused: the page's job is to say "this is
+   more than you meant to take on". */
+.ext-slot.over { border-color: var(--p2); background: var(--p2); }
+.ext-moveall { margin-left: auto; }
+
+.ext-objrow {
+  display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap;
+  padding: var(--s2) 0; border-bottom: 1px solid var(--border);
+}
+.ext-objcheck {
+  width: 18px; height: 18px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border: 1.5px solid var(--border-strong); border-radius: var(--r-full);
+  color: #fff;
+}
+.ext-objrow.done .ext-objcheck { border-color: var(--accent); background: var(--accent); }
+.ext-objtitle { flex: 1; min-width: 120px; font-size: var(--fs-14); }
+.ext-objrow.done .ext-objtitle { color: var(--muted); text-decoration: line-through; }
+.ext-parentchip { color: var(--muted); }
+.ext-objchildren {
+  display: inline-flex; align-items: center; gap: var(--s2);
+  color: var(--muted); font-size: var(--fs-12);
+}
+.ext-objchildren .ext-progress { width: 60px; margin: 0; }
+.ext-objmove { flex: 0 0 auto; }
+.ext-recovered .ext-objcheck { border-color: var(--faint); background: var(--faint); }
+
+.ext-newobjective { padding: var(--s3); margin-bottom: var(--s3); }
+.ext-objselects {
+  display: grid; gap: var(--s3); margin-top: var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.ext-planreview { padding: var(--s3); margin-top: var(--s4); }
+.ext-prompts { display: flex; flex-direction: column; gap: var(--s1); margin-bottom: var(--s3); }
+.ext-prompt { margin: 0; color: var(--muted); font-size: var(--fs-12); }
+.ext-prompt strong { color: var(--text); }
+.ext-notes { width: 100%; min-height: 72px; padding: var(--s2); resize: vertical; }
+
+@media (max-width: 760px) {
+  .ext-periodbar { flex-wrap: wrap; }
+  .ext-newobjbtn, .ext-moveall { margin-left: 0; }
+  .ext-capacity { flex-wrap: wrap; }
 }

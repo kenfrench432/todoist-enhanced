@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { item } from '@/test/items';
 import { defaultSettings } from '@/ext/data/defaults';
+import type { CompletedItem } from '@/domain/types';
+import { due } from '@/test/items';
+import { periodOf } from './periods';
 import {
-  capFor, capacity, dueForPeriod, labelsForObjective, moveToNext, objectivesIn, readObjective,
+  PROMPTS, cadenceCounts, capFor, capacity, dueForPeriod, labelsForObjective, mergeCompleted,
+  moveToNext, objectivesIn, objectivesInPeriod, readObjective,
 } from './objectives';
 
 /** Tue 29 Sep 2026. Week 40 runs 28 Sep to 4 Oct; Q3 ends 30 Sep. */
@@ -147,5 +151,101 @@ describe('objectivesIn', () => {
       item({ id: 'x', labels: ['initiative'] }),
     ];
     expect(objectivesIn(items, settings, 'w').map((i) => i.id)).toEqual(['w1', 'w2']);
+  });
+});
+
+describe('objectivesInPeriod', () => {
+  const week = periodOf('w', 0, NOW);   // Mon 28 Sep to Sun 4 Oct
+  const obj = (id: string, date: string, over: Record<string, unknown> = {}) =>
+    item({ id, labels: ['objective', 'period-week'], due: due(date), ...over });
+
+  /* An objective is placed by its due date — the last day of its period —
+     not by when it happened to be finished. */
+  it('takes the objectives due inside the period', () => {
+    const items = [
+      obj('in-start', '2026-09-28'),
+      obj('in-end', '2026-10-04'),
+      obj('before', '2026-09-27'),
+      obj('after', '2026-10-05'),
+    ];
+    expect(objectivesInPeriod(items, settings, 'w', week).map((i) => i.id))
+      .toEqual(['in-start', 'in-end']);
+  });
+
+  /* The point of reading the snapshot rather than openItems: a completed
+     objective still counts towards its period's "2 of 3 done". */
+  it('keeps completed objectives, so the period still counts them', () => {
+    const items = [obj('open', '2026-10-04'), obj('done', '2026-10-04', { checked: true })];
+    expect(objectivesInPeriod(items, settings, 'w', week)).toHaveLength(2);
+    expect(cadenceCounts(objectivesInPeriod(items, settings, 'w', week)))
+      .toEqual({ done: 1, total: 2 });
+  });
+
+  it('leaves out other cadences, other tasks, and anything undated', () => {
+    const items = [
+      obj('mine', '2026-10-04'),
+      item({ id: 'daily', labels: ['objective', 'period-day'], due: due('2026-10-04') }),
+      item({ id: 'task', labels: ['week'], due: due('2026-10-04') }),
+      item({ id: 'undated', labels: ['objective', 'period-week'] }),
+    ];
+    expect(objectivesInPeriod(items, settings, 'w', week).map((i) => i.id)).toEqual(['mine']);
+  });
+
+  it('ignores a deleted objective', () => {
+    const items = [obj('gone', '2026-10-04', { is_deleted: true })];
+    expect(objectivesInPeriod(items, settings, 'w', week)).toEqual([]);
+  });
+});
+
+describe('mergeCompleted', () => {
+  const week = periodOf('w', 0, NOW);
+  const row = (id: string, at: string, labels: string[]): CompletedItem => ({
+    id, user_id: 'u', project_id: 'p', section_id: null, content: id, completed_at: at, labels,
+  });
+
+  it('recovers an objective the snapshot no longer has', () => {
+    const rows = [row('gone', '2026-09-30T09:00:00Z', ['objective', 'period-week'])];
+    expect(mergeCompleted([], rows, settings, 'w', week).map((r) => r.id)).toEqual(['gone']);
+  });
+
+  /* The snapshot knows the due date, so anything it holds wins outright and
+     must not be counted twice. */
+  it('never duplicates one the snapshot already has', () => {
+    const kept = item({ id: 'k1', labels: ['objective', 'period-week'], due: due('2026-10-04'), checked: true });
+    const rows = [row('k1', '2026-09-30T09:00:00Z', ['objective', 'period-week'])];
+    expect(mergeCompleted([kept], rows, settings, 'w', week)).toEqual([]);
+  });
+
+  it('matches a row by its task_id when it carries one', () => {
+    const kept = item({ id: 'task-1', labels: ['objective', 'period-week'], due: due('2026-10-04') });
+    const rows = [{ ...row('completion-9', '2026-09-30T09:00:00Z', ['objective', 'period-week']), task_id: 'task-1' }];
+    expect(mergeCompleted([kept], rows, settings, 'w', week)).toEqual([]);
+  });
+
+  it('wants both the marker and the right cadence', () => {
+    const rows = [
+      row('no-marker', '2026-09-30T09:00:00Z', ['period-week']),
+      row('wrong-cadence', '2026-09-30T09:00:00Z', ['objective', 'period-day']),
+    ];
+    expect(mergeCompleted([], rows, settings, 'w', week)).toEqual([]);
+  });
+
+  it('leaves out anything finished outside the period', () => {
+    const rows = [row('late', '2026-10-09T09:00:00Z', ['objective', 'period-week'])];
+    expect(mergeCompleted([], rows, settings, 'w', week)).toEqual([]);
+  });
+});
+
+describe('cadenceCounts and the prompts', () => {
+  it('counts the recovered ones as done too', () => {
+    const items = [item({ id: 'a', checked: true }), item({ id: 'b' })];
+    expect(cadenceCounts(items, 2)).toEqual({ done: 3, total: 4 });
+  });
+
+  it('has a start and an end prompt for every cadence', () => {
+    for (const cadence of ['d', 'w', 'm', 'q'] as const) {
+      expect(PROMPTS[cadence].start.length).toBeGreaterThan(0);
+      expect(PROMPTS[cadence].end.length).toBeGreaterThan(0);
+    }
   });
 });
