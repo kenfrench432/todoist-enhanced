@@ -117,3 +117,8 @@ useStore.subscribe((state, previous) => {
 });
 
 void useExt.getState().hydrate();
+
+/* The demo's sample data, seeded from outside rather than by editing
+   upstream's demo start. Imported lazily so this module does not depend on
+   the one that depends on it. */
+void import('../demo').then((demo) => demo.installExtDemo());

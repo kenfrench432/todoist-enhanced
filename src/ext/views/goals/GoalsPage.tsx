@@ -5,6 +5,8 @@ import { useCompleted } from '@/hooks/useCompleted';
 import { useData } from '@/hooks/useData';
 import { navigate, type Route } from '@/hooks/useRoute';
 import { useToday } from '@/hooks/useToday';
+import { useStore } from '@/store/store';
+import { demoCompleted } from '@/ext/demo';
 import { useExt } from '@/ext/data/store';
 import {
   focusAreaIdOf, initiativesIn, isLive, readInitiative,
@@ -45,7 +47,16 @@ export function GoalsPage({ route }: { route: Route }) {
     () => ({ since: momentumSince(today), until: today }),
     [today],
   );
-  const { data: completed } = useCompleted(range, true);
+  const { data: fetched } = useCompleted(range, true);
+  /* The demo's own sample completions. upstream's buildDemoCompleted is called
+     inside useCompleted and carries none of the fork's labels, so momentum
+     would read Stalling everywhere; substituting here keeps that fix inside
+     src/ext rather than spending an upstream line on a demo cosmetic. */
+  const demo = useStore((s) => s.demo);
+  const completed = useMemo(
+    () => (demo ? demoCompleted(today) : fetched),
+    [demo, today, fetched],
+  );
 
   const initiatives = useMemo(
     () => initiativesIn(items, data.settings),
