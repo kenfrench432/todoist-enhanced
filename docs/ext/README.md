@@ -104,6 +104,53 @@ Upstream merges arrive through the **Sync upstream** workflow: every Monday,
 or on demand from the Actions tab. It opens a pull request, Pages builds a
 preview for it, and you review and merge. `UPDATING.md` has the detail.
 
+### The login in front of it
+
+The site sits behind **Cloudflare Access** (Zero Trust → Access →
+Applications), so the URL is not publicly browsable. Nothing in this repo
+implements it; it is three applications on the dashboard, and the second one
+is not optional.
+
+| Application | Path | Policy |
+| --- | --- | --- |
+| The app | `todoist-ui.pages.dev/*` | **Allow** → Emails → your address. One-time PIN by email needs no identity provider. |
+| OAuth metadata | `todoist-ui.pages.dev/oauth/*` | **Bypass** → Everyone |
+| The logo | `todoist-ui.pages.dev/icon-192.png` | **Bypass** → Everyone |
+
+**Why the second one exists.** `client_id` is not a secret string, it is a
+URL: `https://todoist-ui.pages.dev/oauth/client.json`. **Todoist's servers
+fetch that file** to find out what the app is. They have no Access session and
+never will, so gating it makes "Continue with Todoist" fail with
+`invalid_client` — the same symptom as a missing `PUBLIC_URL`, from a
+completely different cause.
+
+**Why the third.** `logo_uri` points at `/icon-192.png`, which Todoist's
+consent screen loads cross-site. An Access cookie is not sent on that kind of
+request, so without the bypass the authorise page shows a broken logo. Only
+cosmetic — leave it gated if you would rather.
+
+Access matches the more specific path, so the two bypasses win over the `/*`
+rule. Do not take that on trust: after setting it up, prove it.
+
+```bash
+# Must stay public — Todoist is the one fetching these.
+curl -s -o /dev/null -w 'client.json  %{http_code}\n' https://todoist-ui.pages.dev/oauth/client.json
+curl -s -o /dev/null -w 'icon-192     %{http_code}\n' https://todoist-ui.pages.dev/icon-192.png
+
+# Must now be gated — a browser with no Access session.
+curl -s -o /dev/null -w 'app root     %{http_code} -> %{redirect_url}\n' https://todoist-ui.pages.dev/
+```
+
+The first two should still read `200`. The third should read `302` to a
+`cloudflareaccess.com` login. If the root still reads `200`, the policy is not
+on; if `client.json` reads `302`, sign-in is broken and the bypass is missing
+or ordered wrong.
+
+Two things to expect once it is on: the Access session expires (24 hours by
+default — raise it in the application's settings if signing in daily is
+annoying), and the installed PWA goes through the same login, so an expired
+session shows the Cloudflare page inside the app window.
+
 ## What this fork adds
 
 Five pages, for running a technical success manager's week:
