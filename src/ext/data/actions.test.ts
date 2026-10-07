@@ -4,8 +4,9 @@ import {
   linkInitiativeGoal, linkObjective, linkObjectiveGoal, logKpiValue, moveStage,
   pruneLinks, removeCsm, removeCustomer, removeFocusArea, removeGoal, removeKpi,
   removeStage, renameCustomer, renameCustomerLabel, renameStage, setCustomer,
-  setCustomerOrder, setNote, setSettings, slug,
+  setCustomerOrder, setNote, setSettings,
 } from './actions';
+import { slug } from '@/ext/domain/labels';
 import { defaultExtData } from './defaults';
 import type { ExtData } from './types';
 

@@ -1,3 +1,4 @@
+import { slug } from '@/ext/domain/labels';
 import { newId, paletteColor } from './defaults';
 import type {
   Csm, Customer, ExtData, ExtSettings, FocusArea, Goal, Kpi, Stage, Tier, Tone,
@@ -12,11 +13,6 @@ import type {
  */
 
 const TONES: Tone[] = ['blue', 'green', 'amber', 'red', 'gray'];
-
-/** The customer label: the name, lowercased, with runs of anything else as `-`. */
-export const slug = (name: string): string =>
-  name.normalize('NFKD').replace(/[̀-ͯ]/g, '')
-    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
 const without = <T extends { id: string }>(rows: T[], id: string): T[] =>
   rows.filter((row) => row.id !== id);
