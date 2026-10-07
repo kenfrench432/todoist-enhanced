@@ -146,3 +146,82 @@ button.ext-dot:hover { background: var(--hover); }
   .ext-table .ext-num, .ext-table .ext-rowactions { text-align: left; }
   .ext-numfield, .ext-unitfield { width: 100%; }
 }
+
+/* ---------- Customers ---------- */
+
+.ext-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s3); }
+.ext-toolbar .segmented { width: auto; }
+.ext-switch { display: inline-flex; align-items: center; gap: var(--s2); }
+.ext-switchlabel { font-size: var(--fs-13); color: var(--text); }
+.ext-switchlabel:hover { color: var(--accent-dark); }
+
+.ext-pop { width: 280px; max-height: 420px; overflow: auto; }
+.ext-poprow { display: flex; gap: var(--s2); padding: 0 var(--s2) var(--s2); }
+.ext-poplist { display: flex; flex-direction: column; }
+.ext-popline-wrap { display: flex; align-items: center; gap: var(--s1); }
+.ext-popline {
+  flex: 1; min-width: 0; min-height: 30px; padding: 0 var(--s2);
+  display: flex; align-items: center; gap: var(--s2);
+  border-radius: var(--r-sm); font-size: var(--fs-13); text-align: left; color: var(--text);
+}
+.ext-popline:hover { background: var(--hover); }
+.ext-popline-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ext-tick {
+  width: 16px; height: 16px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border: 1px solid var(--border-strong); border-radius: var(--r-xs);
+}
+.ext-tick.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+.ext-ordertools { display: flex; flex: 0 0 auto; }
+
+.ext-customer { padding: var(--s3); margin-bottom: var(--s3); }
+.ext-custhead { display: flex; align-items: center; gap: var(--s2); }
+.ext-mark {
+  width: 26px; height: 26px; flex: 0 0 auto;
+  display: grid; place-items: center; border-radius: var(--r-full);
+  background: var(--marker-soft); color: var(--marker);
+  font-size: var(--fs-11); font-weight: 700;
+}
+.ext-custname { font-size: var(--fs-14); font-weight: 600; }
+.ext-tier { font-variant-numeric: tabular-nums; }
+.ext-stage { background: var(--marker-soft); color: var(--marker); }
+.ext-csm { margin: 0; }
+.ext-custhead .ext-count { margin-left: auto; }
+
+.ext-engagement {
+  margin: var(--s3) 0; padding: var(--s2) var(--s3);
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+}
+.ext-engagement.late { border-color: var(--late); background: var(--late-wash); }
+.ext-engagement.today { background: var(--subtle); }
+.ext-enghead { display: flex; align-items: center; gap: var(--s2); }
+.ext-engtoggle { width: 20px; flex: 0 0 auto; color: var(--faint); }
+.ext-engtitle { flex: 1; min-width: 0; font-size: var(--fs-13); font-weight: 600; }
+.ext-enghead .ext-hint { margin: 0; white-space: nowrap; }
+.ext-deadline.late { color: var(--late); }
+.ext-progress {
+  height: 4px; margin: var(--s2) 0; border-radius: var(--r-full); background: var(--hover);
+}
+.ext-progress > span {
+  display: block; height: 100%; border-radius: var(--r-full); background: var(--accent);
+}
+.ext-addtask { margin-top: var(--s1); }
+
+.ext-taskline { display: flex; align-items: center; gap: var(--s2); }
+.ext-taskline > :first-child { flex: 1; min-width: 0; }
+.ext-engchip { flex: 0 0 auto; color: var(--faint); }
+
+.ext-composer {
+  margin: var(--s2) 0; padding: var(--s3);
+  border: 1px solid var(--border-strong); border-radius: var(--r-lg); background: var(--subtle);
+}
+.ext-kind { width: 180px; margin-bottom: var(--s3); }
+.ext-composerchips { margin-top: var(--s2); }
+
+@media (max-width: 760px) {
+  .ext-toolbar { gap: var(--s2); }
+  .ext-toolbar .segmented { width: 100%; }
+  .ext-pop { width: min(280px, calc(100vw - 32px)); }
+  .ext-custhead { flex-wrap: wrap; }
+  .ext-custhead .ext-count { margin-left: 0; }
+}
