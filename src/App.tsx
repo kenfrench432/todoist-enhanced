@@ -46,6 +46,10 @@ import { anytimeItems, bucketOf, hasLabel, somedayItems, upcomingItems, weekItem
 import { effectiveEstimate } from './domain/estimates';
 import type { Item } from './domain/types';
 import type { TranslationKey } from './i18n';
+// ext: the fork's pages, which pick their own view and name themselves.
+import { ExtPage } from '@/ext/ExtPage';
+import { isExtView } from '@/ext/routes';
+import { extContextLabel } from '@/ext/i18n';
 
 export function App() {
   const { t } = useT();
@@ -550,6 +554,10 @@ function AppShell({
       }
       case 'matrix':
         return { contextItems: roots, contextLabel: t('nav.matrix') };
+      // ext: our pages name themselves; there is no upstream nav.<view> string.
+      case 'customers': case 'objectives': case 'initiatives':
+      case 'goals': case 'manage':
+        return { contextItems: roots, contextLabel: extContextLabel(route.view) };
       default:
         return { contextItems: roots, contextLabel: t(`nav.${route.view}` as TranslationKey) };
     }
@@ -715,6 +723,8 @@ function AppShell({
           {route.view === 'review' && <ReviewView onOpen={openTask} />}
           {route.view === 'insights' && <InsightsView onOpen={openTask} />}
           {route.view === 'settings' && <SettingsView />}
+          {/* ext: the fork's pages. */}
+          {isExtView(route.view) && <ExtPage route={route} onOpen={openTask} />}
         </section>
 
         <nav className="mobile-nav" aria-label={t('nav.projects')}>

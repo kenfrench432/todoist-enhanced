@@ -1,0 +1,17 @@
+/*
+ * The fork's stylesheet, imported once from `src/main.tsx`.
+ *
+ * Everything here is built from the tokens in `docs/component-language.md`, so
+ * light and dark come free and nothing needs a rule per scheme. Upstream's own
+ * classes are reused wherever one already says what we mean — `.page` for a
+ * page frame, `.empty` for an empty state, `.navitem` and `.side-group` for the
+ * sidebar — so the fork's pages are not a second look-and-feel.
+ *
+ * Phase 1 adds no rules of its own: `.ext-page`, `.ext-nav` and `.ext-group`
+ * are hooks for the later phases and for the end-to-end tests to aim at.
+ */
+
+/* The group of pages under "Focus" ends where the projects below it begin. */
+.ext-nav .ext-group {
+  margin-bottom: var(--s3);
+}

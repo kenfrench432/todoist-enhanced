@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ViewId } from '@/domain/types';
+import { EXT_VIEWS } from '@/ext/routes'; // ext:
 
 export interface Route {
   view: ViewId;
@@ -19,6 +20,7 @@ function parse(hash: string): Route {
   const known: ViewId[] = [
     'inbox', 'week', 'today', 'upcoming', 'someday', 'review',
     'settings', 'project', 'label', 'labels', 'matrix', 'insights',
+    ...EXT_VIEWS, // ext: the fork's pages
   ];
   if (!known.includes(view as ViewId)) return { view: 'week' };
   const sectionId = view === 'project' ? new URLSearchParams(query).get('section') ?? undefined : undefined;

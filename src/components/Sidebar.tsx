@@ -23,6 +23,7 @@ import { DraggableTag } from './dnd/DraggableTag';
 import { dragClock } from './dnd/DragProvider';
 import type { ProjectSheetTarget } from './overlays/ProjectSheet';
 import { byChildOrder, byLabelOrder } from '@/domain/orderKey';
+import { ExtNav } from '@/ext/ExtNav'; // ext:
 
 interface SidebarProps {
   route: Route;
@@ -475,6 +476,9 @@ export function Sidebar({
           {eisenhowerEnabled && navItem('matrix', 'dashboard', 'nav.matrix', 0)}
           {navItem('labels', 'tag', 'nav.labels', 0)}
         </nav>
+
+        {/* ext: the fork's pages, with their own rows and strings. */}
+        <ExtNav current={route.view} />
 
         {(favourites.labels.length > 0 || favourites.projects.length > 0) && (
           <SideGroup

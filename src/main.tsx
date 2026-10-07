@@ -6,6 +6,7 @@ import { useStore } from './store/store';
 import './styles/app.css';
 import './styles/additions.css';
 import './styles/theme.css';
+import '@/ext/ext.css'; // ext: the fork's styles, imported once
 
 // Exposed only while developing, so views can be exercised against sample data
 // without a real account. Vite strips this branch from production builds.
