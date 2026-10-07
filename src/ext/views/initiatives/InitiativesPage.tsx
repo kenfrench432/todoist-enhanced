@@ -7,6 +7,8 @@ import type { LoadSummary } from '@/domain/load';
 import { useCompleted } from '@/hooks/useCompleted';
 import { useData } from '@/hooks/useData';
 import { useToday } from '@/hooks/useToday';
+import { useStore } from '@/store/store';
+import { demoCompleted } from '@/ext/demo';
 import { useExt } from '@/ext/data/store';
 import {
   completedInitiatives, groupInitiatives, initiativeSummary, initiativesIn,
@@ -45,7 +47,13 @@ export function InitiativesPage({ onOpen }: { onOpen: (id: string) => void }) {
     () => ({ since: subDays(now, COMPLETED_DAYS), until: now }),
     [now],
   );
-  const { data: completed, loading } = useCompleted(range, showCompleted);
+  const { data: fetched, loading } = useCompleted(range, showCompleted);
+  // The demo's own sample completions; see GoalsPage for why.
+  const demo = useStore((s) => s.demo);
+  const completed = useMemo(
+    () => (demo ? demoCompleted(now) : fetched),
+    [demo, now, fetched],
+  );
 
   const initiatives = useMemo(
     () => initiativesIn(items, data.settings),

@@ -38,6 +38,20 @@ upstream file is a merge conflict every week, and all three are harmless.
 
 Re-check them against upstream after a sync, and delete a row once it is fixed.
 
+## Writing demo data
+
+`src/ext/demo.ts` seeds the sample account. Two things about it are easy to
+get wrong:
+
+- **Demo copy is part of the test surface.** Playwright matches an accessible
+  name by substring, so a task called "Book the onboarding workshop" answers to
+  upstream's `getByRole('button', { name: 'Board' })` and quietly hijacks its
+  Upcoming journey. Run the whole suite, not only `ext-*`, after changing a
+  task title.
+- **The tasks land in the same snapshot as upstream's demo**, so they show on
+  My week, Upcoming and Insights too. That is honest — a real account's
+  customer tasks do — but it means upstream's journeys see them.
+
 ## Not yet built
 
 The sidebar rows the fork adds carry no counts yet. The counts SPEC asks for —
