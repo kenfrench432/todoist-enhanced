@@ -23,3 +23,25 @@ Also useful:
 
 The spec is the source of truth. If something turns out wrong in real use, edit
 `SPEC.md` first, then bring the code in line with it.
+
+## Known upstream issues
+
+These are upstream's, not the fork's. They are on the Phase 0 baseline too, and
+the rule in `CLAUDE.md` is to note them rather than fix them: a fix in an
+upstream file is a merge conflict every week, and all three are harmless.
+
+| Issue | What it is |
+| --- | --- |
+| `e2e/fixes-1.16.spec.ts:3` fails | "#117 a saved title opens as plain text" expects one `.nmark.priority` in the task panel and finds none. It fails identically at the Phase 0 baseline, so `npx playwright test` reads 107 passed, 1 failed. Treat that one as the expected state until an upstream release clears it. |
+| 7 npm-audit vulnerabilities | 1 low, 2 moderate, 2 high, 2 critical, in `@vitest/mocker`, `brace-expansion`, `fast-uri`, `serialize-javascript`, `source-map-js`, `tinypool` and `vitest`. Every one is a transitive development dependency — the test runner, ESLint, the PWA plugin and Vite's own build — so none of them reach the browser bundle. Clearing `tinypool` needs `npm audit fix --force`, which installs a new major of Vitest; that is upstream's call. |
+| Chunk-size warning on build | `npm run build` warns that `dist/assets/index-*.js` is over 500 kB (about 920 kB raw, 270 kB gzipped). The app is not code-split. Splitting it would touch `vite.config.ts`, which is not one of the fork's hook points. |
+
+Re-check them against upstream after a sync, and delete a row once it is fixed.
+
+## Not yet built
+
+The sidebar rows the fork adds carry no counts yet. The counts SPEC asks for —
+customers with in-period tasks, open objectives today, live initiatives — need
+the domain rules from Phase 3, so `ExtNav` renders the rows without them until
+then. The markup is upstream's `navItem`, which already leaves a zero count
+out, so the counts are a small change when the rules exist.
