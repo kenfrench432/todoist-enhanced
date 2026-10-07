@@ -114,7 +114,7 @@ describe('customerTasks', () => {
 describe('engagementVisible', () => {
   const soonDays = 7;
   const eng = (deadline: string | null) =>
-    task({ id: 'e1', labels: ['avon', 'engagement'], deadline: deadline ? { date: deadline } : null });
+    task({ id: 'e1', labels: ['avon', 'engagement'], deadline: deadline ? { date: deadline, lang: 'en' } : null });
 
   it('shows nothing when engagements are switched off', () => {
     expect(engagementVisible(eng('2026-09-30'), 'all', false, NOW, soonDays)).toBe(false);
