@@ -5,12 +5,14 @@ import { navigate, type Route } from '@/hooks/useRoute';
 import { useData } from '@/hooks/useData';
 import { useExt } from '@/ext/data/store';
 import { initiativesIn } from '@/ext/domain/initiatives';
+import { pendingChanges } from '@/ext/domain/rules';
 import { useTx, type ExtKey } from '@/ext/i18n';
 import { CustomersTab } from './CustomersTab';
 import { GoalsTab } from './GoalsTab';
 import { InitiativesTab } from './InitiativesTab';
+import { RulesTab } from './RulesTab';
 
-const TABS = ['customers', 'goals', 'initiatives'] as const;
+const TABS = ['customers', 'goals', 'initiatives', 'rules'] as const;
 type Tab = (typeof TABS)[number];
 
 const EMPTY_LOAD: LoadSummary = {
@@ -35,11 +37,14 @@ export function ManagePage({ route }: { route: Route }) {
 
   /* A count under each tab name, so the page says what is in it before you
      have opened anything. */
+  /* Rules count what they would change rather than how many rules there are:
+     the number worth seeing from the other tabs is the size of the mess. */
   const counts = useMemo(() => ({
     customers: data.customers.length,
     goals: data.goals.length,
     initiatives: initiativesIn(items, data.settings).length,
-  }), [data.customers.length, data.goals.length, data.settings, items]);
+    rules: pendingChanges(items, data.rules).length,
+  }), [data.customers.length, data.goals.length, data.settings, data.rules, items]);
 
   return (
     <div className="page ext-page ext-manage">
@@ -66,6 +71,7 @@ export function ManagePage({ route }: { route: Route }) {
       {tab === 'customers' && <CustomersTab data={data} snapshot={snapshot} items={items} />}
       {tab === 'goals' && <GoalsTab data={data} items={items} />}
       {tab === 'initiatives' && <InitiativesTab data={data} items={items} />}
+      {tab === 'rules' && <RulesTab data={data} snapshot={snapshot} items={items} />}
     </div>
   );
 }

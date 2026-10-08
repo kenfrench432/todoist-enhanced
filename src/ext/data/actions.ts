@@ -1,4 +1,5 @@
 import { slug } from '@/ext/domain/labels';
+import { emptyRule, type Rule } from '@/ext/domain/rules';
 import { newId, paletteColor } from './defaults';
 import type {
   Csm, Customer, ExtData, ExtSettings, FocusArea, Goal, Kpi, Stage, Tier, Tone,
@@ -345,3 +346,15 @@ export function remapTaskIds(data: ExtData, mapping: Record<string, string>): Ex
     ),
   };
 }
+
+/* ---------- Tidy-up rules ---------- */
+
+export function addRule(data: ExtData): ExtData {
+  return { ...data, rules: [...data.rules, emptyRule(newId())] };
+}
+
+export const updateRule = (data: ExtData, id: string, change: Partial<Rule>): ExtData =>
+  ({ ...data, rules: patch(data.rules, id, change) });
+
+export const removeRule = (data: ExtData, id: string): ExtData =>
+  ({ ...data, rules: without(data.rules, id) });

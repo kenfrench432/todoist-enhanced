@@ -1,3 +1,5 @@
+import type { Rule } from '@/ext/domain/rules';
+
 /**
  * Extension data: the one JSON document the fork keeps for everything Todoist
  * has no field for.
@@ -125,4 +127,9 @@ export interface ExtData {
   objectiveGoals: Record<string, string>;
   /** 'd:2026-09-29' | 'w:2026-W40' | 'm:2026-09' | 'q:2026-Q3' → text. */
   notes: Record<string, string>;
+  /**
+   * Tidy-up rules. They never apply themselves — Manage shows what they would
+   * change and writes only what is approved.
+   */
+  rules: Rule[];
 }

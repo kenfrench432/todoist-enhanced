@@ -71,8 +71,8 @@ matches shows "No customers match these filters" and a Clear button.
 
 ## 2. Manage (`#/manage`)
 
-Title "Manage". Tabs: **Customers · Goals & KPIs · Initiatives**, each with a
-small summary under its name. The tab is in the URL.
+Title "Manage". Tabs: **Customers · Goals & KPIs · Initiatives · Tidy up**,
+each with a small summary under its name. The tab is in the URL.
 
 **Customers tab.**
 - "Add customer" field. The label preview is the slug; on add, create the
@@ -121,6 +121,38 @@ small summary under its name. The tab is in the URL.
   the Todoist task (archive); it never deletes it.
 - "New initiative" form: name, focus-area chips, status chips (Idea / Planned
   / Active), target chips, and a preview of the labels it will apply.
+
+**Tidy up tab.**
+
+Filing rules, and what they would change. Nothing is ever applied on its own:
+a rule works out what *would* happen, and the write only happens when the
+button is pressed. A task parked somewhere deliberately stays where it is.
+
+- **Rules card.** Each rule reads as a sentence, with a switch to turn it off
+  without deleting it, and a two-step remove:
+
+  > When a task is in *‹project›* and carries *‹label›*, add the label
+  > *‹label›* and move it to *‹project›*.
+
+  - Each half can be left as "any project" / "any label" / "nothing" /
+    "leave it where it is", but a rule needs **at least one condition and at
+    least one action**. One with neither says so and claims nothing — a rule
+    with no condition would match every task in the account.
+  - The Inbox is a project like any other here.
+  - The label pickers offer Todoist's own labels **and** any label seen on a
+    task, because the fork invents labels (`focus-…`, a customer slug) that
+    the account may not have registered yet.
+  - "New rule" adds an empty one.
+- **Tidy up card.** One row per task a rule would change: its title, the
+  project it is in now, and what would be done, in order. Every row is ticked
+  by default; unticking one holds it back, and it stays on the list.
+  - A task already carrying the label, and already in the right project, is
+    not listed. Only a real change appears.
+  - A **sub-task is never moved**: in Todoist a sub-task lives with its
+    parent, and moving it would lift it out. It can still be labelled.
+  - "Apply n changes" writes. Labels go in one request; moves go one per
+    destination, each with its own toast and its own undo.
+- The tab's count is the number of changes waiting, not the number of rules.
 
 ## 3. Initiatives (`#/initiatives`)
 

@@ -6,7 +6,7 @@ import { emptySnapshot, type Label, type Snapshot } from '@/domain/types';
 import type { FocusArea } from '@/ext/data/types';
 import {
   customerLabelChoices, customerLabelOf, customerLabelsOf, focusLabelChoices,
-  isMarkerLabel, slug, swapPrefixedLabel,
+  isMarkerLabel, ruleLabelChoices, slug, swapPrefixedLabel,
 } from './labels';
 
 const settings = defaultSettings();
@@ -184,5 +184,30 @@ describe('focusLabelChoices', () => {
     const fresh = [area('fw', 'focus-maturity-framework')];
     const choices = focusLabelChoices(snapshot, settings, fresh, 'fw');
     expect(choices[0]).toEqual({ name: 'focus-maturity-framework', missing: true });
+  });
+});
+
+describe('ruleLabelChoices', () => {
+  const snapshot = snapshotWith(['waiting', 'est-45']);
+
+  it('offers Todoist labels, alphabetically, without the estimates', () => {
+    expect(ruleLabelChoices(snapshot, [])).toEqual(['waiting']);
+  });
+
+  /* The fork's own labels can be on tasks before the account has them — a
+     fresh document points its focus areas at labels Todoist has never had —
+     and a rule has to be able to name one. */
+  it('offers a label seen on a task that Todoist has no record of', () => {
+    expect(ruleLabelChoices(snapshot, [item({ labels: ['engagement', 'avon'] })]))
+      .toEqual(['avon', 'engagement', 'waiting']);
+  });
+
+  it('offers each label once, keeping the first spelling it saw', () => {
+    const items = [item({ labels: ['Waiting'] }), item({ labels: ['engagement', 'engagement'] })];
+    expect(ruleLabelChoices(snapshot, items)).toEqual(['engagement', 'waiting']);
+  });
+
+  it('leaves an estimate out wherever it comes from', () => {
+    expect(ruleLabelChoices(snapshot, [item({ labels: ['est-90'] })])).toEqual(['waiting']);
   });
 });

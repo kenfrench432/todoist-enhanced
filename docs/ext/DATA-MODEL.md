@@ -95,6 +95,13 @@ export interface ExtData {
   objectiveParents: Record<string, string>;    // objective task id → parent objective task id
   objectiveGoals: Record<string, string>;      // quarter objective task id → goal id
   notes: Record<string, string>;               // 'w:2026-W40' | 'd:2026-09-29' | 'm:2026-09' | 'q:2026-Q3' → text
+  rules: Rule[];                               // filing rules for the Tidy up tab
+}
+export interface Rule {
+  id: string;
+  on: boolean;                                 // off without being deleted
+  when: { projectId: string | null; hasLabel: string | null };   // null = any
+  then: { addLabel: string | null; moveToProjectId: string | null };
 }
 export type Tone = 'blue' | 'green' | 'amber' | 'red' | 'gray';
 ```
@@ -124,6 +131,12 @@ Ids: `crypto.randomUUID()` sliced to 8 characters.
   pruned on the next write.
 - Moving an objective to the next period: if its parent's period does not
   contain the new period's start, remove the parent link.
+- A rule is read back with `on` **false** unless the stored value is exactly
+  `true`. A rule nobody could read should not be the one quietly proposing
+  changes.
+- A rule with no condition, or no action, is ignored. It is kept in the
+  document so the half-written one you are editing does not vanish, and the
+  tab says what it is missing.
 
 ## 3. Derived values (pure functions in `src/ext/domain/`)
 

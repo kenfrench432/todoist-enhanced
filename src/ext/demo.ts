@@ -132,6 +132,22 @@ export function demoExtData(today: Date): ExtData {
     },
   ];
 
+  /* Ken's own two rules, aimed at the demo's projects: a customer project
+     where the label is missing, and an engagement sitting in the Inbox. Four
+     things to tidy, and nothing tidied until the button is pressed. */
+  data.rules = [
+    {
+      id: 'r-label', on: true,
+      when: { projectId: 'client-a', hasLabel: null },
+      then: { addLabel: 'engagement', moveToProjectId: null },
+    },
+    {
+      id: 'r-move', on: true,
+      when: { projectId: 'inbox', hasLabel: 'engagement' },
+      then: { addLabel: null, moveToProjectId: 'client-a' },
+    },
+  ];
+
   data.notes = {};
   return data;
 }
