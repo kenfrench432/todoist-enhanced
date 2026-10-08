@@ -22,6 +22,17 @@ export const paletteColor = (index: number): string =>
   EXT_PALETTE[index % EXT_PALETTE.length];
 
 /**
+ * The colour after this one, for a swatch that cycles.
+ *
+ * A colour the palette has never heard of starts the cycle rather than
+ * sticking, so a document edited by hand can still be clicked back into line.
+ */
+export function nextPaletteColor(current: string): string {
+  const at = (EXT_PALETTE as readonly string[]).indexOf(current);
+  return paletteColor(at + 1);
+}
+
+/**
  * The default stages and focus areas carry **fixed** ids, never `newId()`.
  *
  * Two devices starting fresh would otherwise invent different ids for the same

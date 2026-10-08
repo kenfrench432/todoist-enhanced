@@ -77,6 +77,21 @@ const EN = {
   'manage.customers.moveUp': 'Move up',
   'manage.customers.moveDown': 'Move down',
   'manage.customers.tone': 'Change the colour',
+  'manage.label.missing': 'not in Todoist',
+  'manage.label.create': 'Create it',
+  'manage.label.hint':
+    'Points this at a different label. Nothing is renamed \u2014 the tasks carrying the old one simply stop counting here.',
+  'manage.focus.title': 'Focus areas',
+  'manage.focus.name': 'Name',
+  'manage.focus.short': 'Short name',
+  'manage.focus.label': 'Label',
+  'manage.focus.why': 'Why it matters',
+  'manage.focus.add': 'New focus area',
+  'manage.focus.addPlaceholder': 'What is the area?',
+  'manage.focus.colour': 'Change the colour',
+  'manage.focus.hint':
+    'A focus area\u2019s label is what momentum counts and what new initiatives and objectives are tagged with. Changing it does not relabel anything already tagged.',
+  'manage.focus.none': 'No focus areas yet.',
 
   'manage.goals.new': 'New goal',
   'manage.goals.titlePlaceholder': 'What is the goal?',

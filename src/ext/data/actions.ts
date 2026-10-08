@@ -52,15 +52,21 @@ export function addCustomer(data: ExtData, name: string, label = slug(name)): Ex
 /**
  * Renames the customer and **not** its label.
  *
- * The label is on every one of that customer's tasks in Todoist; renaming it
- * is a separate, explicit action (`renameCustomerLabel`) because it rewrites
- * their history, not just this list.
+ * The label is on every one of that customer's tasks in Todoist. Which label
+ * a customer means is a separate, explicit choice (`setCustomerLabel`).
  */
 export const renameCustomer = (data: ExtData, id: string, name: string): ExtData =>
   ({ ...data, customers: patch(data.customers, id, { name: name.trim() }) });
 
-/** The deliberate one: this is what the caller pairs with a Todoist label rename. */
-export const renameCustomerLabel = (data: ExtData, id: string, label: string): ExtData =>
+/**
+ * Points a customer at a different Todoist label.
+ *
+ * This re-points; it renames nothing. The tasks carrying the old label are
+ * untouched and simply stop being this customer's. Renaming a label for real
+ * is Todoist's job, and doing it there updates every task at once — which is
+ * exactly why the app does not try to reimplement it.
+ */
+export const setCustomerLabel = (data: ExtData, id: string, label: string): ExtData =>
   ({ ...data, customers: patch(data.customers, id, { label }) });
 
 export const setCustomer = (

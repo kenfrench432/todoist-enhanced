@@ -31,7 +31,8 @@ test('renaming a customer leaves its Todoist label alone', async ({ demo: page }
   await avon.getByLabel('Customer').fill('Avon Cosmetics');
   await avon.getByLabel('Customer').blur();
   await expect(avon.getByLabel('Customer')).toHaveValue('Avon Cosmetics');
-  await expect(avon.locator('.ext-labelchip')).toHaveText('@avon');
+  // The label is a picker now, and the rename must not have moved it.
+  await expect(avon.getByLabel('Todoist label')).toContainText('@avon');
 
   // And the renamed customer still owns its tasks, which the label decides.
   await go(page, '#/customers');

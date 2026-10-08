@@ -418,3 +418,18 @@ button.ext-dot:hover { background: var(--hover); }
 .ext-hidden { padding: var(--s3); margin-bottom: var(--s3); }
 .ext-hiddenlist { margin-top: var(--s3); gap: var(--s2); }
 .ext-hiddenlist li { display: inline-flex; }
+.ext-labelfield { display: inline-flex; align-items: center; gap: var(--s2); min-width: 0; }
+.ext-focusareas { padding: var(--s3); margin-bottom: var(--s3); }
+.ext-focusrow {
+  display: flex; align-items: center; gap: var(--s2);
+  padding: var(--s2) 0; border-top: 1px solid var(--border); flex-wrap: wrap;
+}
+.ext-focusrow .textfield { flex: 1; min-width: 120px; }
+.ext-shortfield { flex: 0 1 140px !important; }
+.ext-whyfield { flex: 2 1 220px !important; }
+.ext-focusadd { margin-top: var(--s3); }
+
+@media (max-width: 760px) {
+  .ext-focusrow { flex-direction: column; align-items: stretch; }
+  .ext-focusrow .textfield, .ext-shortfield, .ext-whyfield { flex: 1 1 auto !important; }
+}

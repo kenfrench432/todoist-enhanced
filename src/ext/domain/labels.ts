@@ -1,6 +1,6 @@
 import { hasLabel } from '@/domain/views';
-import type { Item } from '@/domain/types';
-import type { Customer, ExtSettings } from '@/ext/data/types';
+import type { Item, Snapshot } from '@/domain/types';
+import type { Customer, ExtSettings, FocusArea } from '@/ext/data/types';
 
 /**
  * Reading and writing the labels the fork's meaning rides on.
@@ -72,4 +72,83 @@ export function swapPrefixedLabel(
   return kept.some((label) => label.toLowerCase() === next.toLowerCase())
     ? kept
     : [...kept, next];
+}
+
+/* ---------- Choosing which Todoist label a thing means ---------- */
+
+export interface LabelChoice {
+  name: string;
+  /** Todoist has no label by this name — offer to create it. */
+  missing: boolean;
+}
+
+const realLabels = (snapshot: Snapshot): string[] =>
+  Object.values(snapshot.labels)
+    .filter((label) => !label.is_deleted && !label.name.startsWith('est-'))
+    .map((label) => label.name);
+
+/**
+ * Always offers what is already chosen, even when Todoist has no such label.
+ *
+ * A fresh document points its focus areas at labels the account has never had,
+ * and a picker that silently dropped the current value would read as having
+ * lost the setting.
+ */
+function withCurrent(names: string[], current: string): LabelChoice[] {
+  const seen = new Set(names.map((name) => name.toLowerCase()));
+  const choices = names.sort((a, b) => a.localeCompare(b))
+    .map((name) => ({ name, missing: false }));
+  if (current && !seen.has(current.toLowerCase())) {
+    choices.unshift({ name: current, missing: true });
+  }
+  return choices;
+}
+
+/**
+ * The labels a customer can be pointed at.
+ *
+ * Marker labels are out — a customer whose label was `engagement` would claim
+ * every engagement in the account — and so is any label another customer
+ * already means, because one label belongs to one customer.
+ */
+export function customerLabelChoices(
+  snapshot: Snapshot,
+  settings: ExtSettings,
+  customers: Customer[],
+  selfId: string,
+): LabelChoice[] {
+  const taken = new Set(
+    customers.filter((customer) => customer.id !== selfId)
+      .map((customer) => customer.label.toLowerCase()),
+  );
+  const current = customers.find((customer) => customer.id === selfId)?.label ?? '';
+  return withCurrent(
+    realLabels(snapshot)
+      .filter((name) => !isMarkerLabel(name, settings))
+      .filter((name) => !taken.has(name.toLowerCase())),
+    current,
+  );
+}
+
+/**
+ * The labels a focus area can be pointed at: the ones carrying the focus
+ * prefix, which is what makes them focus labels in the first place.
+ */
+export function focusLabelChoices(
+  snapshot: Snapshot,
+  settings: ExtSettings,
+  areas: FocusArea[],
+  selfId: string,
+): LabelChoice[] {
+  const prefix = settings.labels.focusPrefix.toLowerCase();
+  const taken = new Set(
+    areas.filter((area) => area.id !== selfId).map((area) => area.label.toLowerCase()),
+  );
+  const current = areas.find((area) => area.id === selfId)?.label ?? '';
+  return withCurrent(
+    realLabels(snapshot)
+      .filter((name) => prefix && name.toLowerCase().startsWith(prefix))
+      .filter((name) => !taken.has(name.toLowerCase())),
+    current,
+  );
 }

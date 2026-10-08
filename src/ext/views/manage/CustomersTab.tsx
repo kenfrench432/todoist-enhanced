@@ -6,15 +6,18 @@ import type { Item, Snapshot } from '@/domain/types';
 import { useStore } from '@/store/store';
 import {
   addCsm, addCustomer, addStage, cycleTone, moveStage, removeCsm, removeCustomer,
-  removeStage, renameCsm, renameCustomer, renameStage, setCustomer, setSettings,
+  removeStage, renameCsm, renameCustomer, renameStage, setCustomer, setCustomerLabel,
+  setSettings,
 } from '@/ext/data/actions';
 import { useExt } from '@/ext/data/store';
 import type { ExtData, Tier } from '@/ext/data/types';
+import { customerLabelChoices, slug } from '@/ext/domain/labels';
 import { pickableProjects } from '@/ext/domain/projects';
-import { slug } from '@/ext/domain/labels';
 import { customerCounts, duplicateName, unlinkedLabels } from '@/ext/domain/manage';
 import { useTx } from '@/ext/i18n';
-import { Disclosed, Dot, DraftInput, NameList, ProjectField, TwoStepRemove } from './parts';
+import {
+  Disclosed, Dot, DraftInput, LabelField, NameList, ProjectField, TwoStepRemove,
+} from './parts';
 
 const TIERS: Tier[] = ['P1', 'P2', 'P3'];
 
@@ -198,7 +201,15 @@ export function CustomersTab(
                       </span>
                     </td>
                     <td data-label={tx('manage.customers.colLabel')}>
-                      <code className="ext-labelchip">@{customer.label}</code>
+                      <LabelField
+                        label={tx('manage.customers.colLabel')}
+                        value={customer.label}
+                        choices={customerLabelChoices(
+                          snapshot, data.settings, data.customers, customer.id,
+                        )}
+                        onChange={(label) =>
+                          update((c) => setCustomerLabel(c, customer.id, label))}
+                      />
                     </td>
                     <td data-label={tx('manage.customers.colCsm')}>
                       <Select
@@ -243,6 +254,7 @@ export function CustomersTab(
         )}
 
       <p className="ext-hint">{tx('manage.customers.hint')}</p>
+      <p className="ext-hint ext-quiet">{tx('manage.label.hint')}</p>
 
       <HiddenProjects data={data} snapshot={snapshot} />
 
