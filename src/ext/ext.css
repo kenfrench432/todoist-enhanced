@@ -433,3 +433,34 @@ button.ext-dot:hover { background: var(--hover); }
   .ext-focusrow { flex-direction: column; align-items: stretch; }
   .ext-focusrow .textfield, .ext-shortfield, .ext-whyfield { flex: 1 1 auto !important; }
 }
+
+/* Manage: rules, and what they would tidy. */
+.ext-rulerow {
+  display: flex; align-items: flex-start; gap: var(--s3);
+  padding: var(--s3) 0; border-top: 1px solid var(--border);
+}
+.ext-rulerow:first-of-type { border-top: 0; }
+.ext-rulerow .switch { flex: 0 0 auto; margin-top: var(--s1); }
+/* A rule switched off still reads, so you can see what you have parked. */
+.ext-ruleoff .ext-rulesentence { opacity: 0.55; }
+.ext-rulesentence {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s2);
+  flex: 1 1 auto; min-width: 0;
+}
+.ext-rulesentence .ext-error { flex: 1 0 100%; margin: 0; }
+.ext-ruleword { color: var(--muted); font-size: var(--fs-12); }
+.ext-rulesfoot { display: flex; gap: var(--s2); margin-top: var(--s3); }
+
+.ext-pendingrow {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--s3);
+  padding: var(--s2) 0; border-top: 1px solid var(--border); cursor: pointer;
+}
+.ext-pendingrow:first-of-type { border-top: 0; }
+.ext-pendingtitle { font-size: var(--fs-13); min-width: 0; overflow-wrap: anywhere; }
+.ext-pendingrow .ext-hint { margin: 0; text-align: right; }
+
+@media (max-width: 720px) {
+  /* The change moves under the title rather than being squeezed beside it. */
+  .ext-pendingrow { grid-template-columns: auto 1fr; }
+  .ext-pendingrow .ext-hint { grid-column: 2; text-align: left; }
+}

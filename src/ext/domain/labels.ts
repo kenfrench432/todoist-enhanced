@@ -152,3 +152,29 @@ export function focusLabelChoices(
     current,
   );
 }
+
+/**
+ * Every label a rule could sensibly name.
+ *
+ * Todoist's own labels, plus any label actually sitting on a task. The second
+ * half matters because the fork invents labels — `focus-…`, `status-…`, a
+ * customer slug — and a document can be pointing at one before the account
+ * has it. A rule that cannot name a label the app can plainly see on a task
+ * would read as broken, so the list follows what is there rather than what is
+ * registered.
+ *
+ * `est-<minutes>` is left out on both sides: those are upstream's estimates,
+ * not labels anyone files by, and there can be dozens.
+ */
+export function ruleLabelChoices(snapshot: Snapshot, items: Item[]): string[] {
+  const names = new Map<string, string>();
+  const offer = (name: string) => {
+    if (!name || name.startsWith('est-')) return;
+    if (!names.has(name.toLowerCase())) names.set(name.toLowerCase(), name);
+  };
+
+  for (const name of realLabels(snapshot)) offer(name);
+  for (const item of items) for (const name of item.labels) offer(name);
+
+  return [...names.values()].sort((a, b) => a.localeCompare(b));
+}

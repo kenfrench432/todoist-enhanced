@@ -109,4 +109,5 @@ export const defaultExtData = (savedAt = 0): ExtData => ({
   objectiveParents: {},
   objectiveGoals: {},
   notes: {},
+  rules: [],
 });

@@ -1,6 +1,7 @@
 import {
   DEFAULT_STAGES, defaultExtData, defaultSettings, paletteColor,
 } from './defaults';
+import type { Rule } from '@/ext/domain/rules';
 import type {
   Csm, Customer, ExtData, ExtSettings, FocusArea, Goal, Kpi, KpiPoint, Stage, Tier, Tone,
 } from './types';
@@ -146,6 +147,27 @@ function readKpi(value: unknown): Kpi | null {
   };
 }
 
+/** A tidy-up rule, with anything unreadable falling back to "not set". */
+function readRule(value: unknown): Rule | null {
+  if (!isObject(value) || typeof value.id !== 'string') return null;
+  const when = isObject(value.when) ? value.when : {};
+  const then = isObject(value.then) ? value.then : {};
+  return {
+    id: value.id,
+    /* A rule whose `on` is unreadable is off. Silently running a rule nobody
+       could read is the wrong way round. */
+    on: value.on === true,
+    when: {
+      projectId: nullableStr(when.projectId),
+      hasLabel: nullableStr(when.hasLabel),
+    },
+    then: {
+      addLabel: nullableStr(then.addLabel),
+      moveToProjectId: nullableStr(then.moveToProjectId),
+    },
+  };
+}
+
 /**
  * Any stored document, read as one this build understands.
  *
@@ -194,5 +216,6 @@ export function migrate(input: unknown): ExtData {
     objectiveParents: strMap(input.objectiveParents),
     objectiveGoals: strMap(input.objectiveGoals),
     notes: strMap(input.notes),
+    rules: byId(arr(input.rules).map(readRule)),
   };
 }
