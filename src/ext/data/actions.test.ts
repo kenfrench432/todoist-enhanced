@@ -3,7 +3,7 @@ import {
   addCsm, addCustomer, addFocusArea, addGoal, addKpi, addStage, cycleTone,
   linkInitiativeGoal, linkObjective, linkObjectiveGoal, logKpiValue, moveStage,
   pruneLinks, removeCsm, removeCustomer, removeFocusArea, removeGoal, removeKpi,
-  removeStage, renameCustomer, renameCustomerLabel, renameStage, setCustomer,
+  removeStage, renameCustomer, setCustomerLabel, renameStage, setCustomer,
   remapTaskIds, setCustomerOrder, setNote, setSettings,
 } from './actions';
 import { slug } from '@/ext/domain/labels';
@@ -44,9 +44,9 @@ describe('customers', () => {
     expect(data.customers[0].label).toBe('aston-martin');
   });
 
-  it('renames the label only when asked for that explicitly', () => {
+  it('points at a different label only when asked for that explicitly', () => {
     let data = addCustomer(base(), 'Aston Martin');
-    data = renameCustomerLabel(data, lastCustomer(data), 'aston');
+    data = setCustomerLabel(data, lastCustomer(data), 'aston');
     expect(data.customers[0].label).toBe('aston');
     expect(data.customers[0].name).toBe('Aston Martin');
   });

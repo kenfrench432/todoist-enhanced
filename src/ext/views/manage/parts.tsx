@@ -3,6 +3,8 @@ import { Icon } from '@/components/Icon';
 import { Select } from '@/components/Select';
 import { markerStyle } from '@/domain/colors';
 import { useData } from '@/hooks/useData';
+import { useStore } from '@/store/store';
+import type { LabelChoice } from '@/ext/domain/labels';
 import { useDraftField, nonEmpty } from '@/ext/hooks/useDraftField';
 import { useTx } from '@/ext/i18n';
 
@@ -171,6 +173,44 @@ export const Dot = ({ color, onClick, label }: {
     </button>
   )
   : <span className="ext-dot" style={markerStyle(color)}><span /></span>);
+
+/**
+ * Which Todoist label a customer or a focus area means.
+ *
+ * It re-points; it renames nothing. A label Todoist has not got is still
+ * offered when it is the one already chosen — a fresh document points its
+ * focus areas at labels the account has never had — and comes with the one
+ * button that does write to Todoist: creating it.
+ */
+export function LabelField({ label, value, choices, onChange }: {
+  label: string;
+  value: string;
+  choices: LabelChoice[];
+  onChange: (name: string) => void;
+}) {
+  const { tx } = useTx();
+  const createLabel = useStore((s) => s.createLabel);
+  const missing = choices.find((choice) => choice.name === value)?.missing ?? false;
+
+  return (
+    <span className="ext-labelfield">
+      <Select
+        ariaLabel={label}
+        value={value}
+        options={choices.map((choice) => ({
+          value: choice.name,
+          label: choice.missing ? `@${choice.name} — ${tx('manage.label.missing')}` : `@${choice.name}`,
+        }))}
+        onChange={onChange}
+      />
+      {missing && (
+        <button className="btn sm" onClick={() => void createLabel(value)}>
+          {tx('manage.label.create')}
+        </button>
+      )}
+    </span>
+  );
+}
 
 /**
  * Where tasks this page creates should go.

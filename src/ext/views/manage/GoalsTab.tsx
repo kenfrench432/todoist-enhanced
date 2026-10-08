@@ -3,18 +3,22 @@ import { Icon } from '@/components/Icon';
 import { Select } from '@/components/Select';
 import { toApiDate } from '@/domain/dates';
 import type { Item } from '@/domain/types';
+import { useData } from '@/hooks/useData';
 import { useToday } from '@/hooks/useToday';
 import {
-  addGoal, addKpi, logKpiValue, removeGoal, removeKpi, updateGoal, updateKpi,
+  addFocusArea, addGoal, addKpi, logKpiValue, removeFocusArea, removeGoal, removeKpi,
+  updateFocusArea, updateGoal, updateKpi,
 } from '@/ext/data/actions';
 import { useExt } from '@/ext/data/store';
+import { nextPaletteColor } from '@/ext/data/defaults';
 import type { ExtData, Kpi } from '@/ext/data/types';
+import { focusLabelChoices } from '@/ext/domain/labels';
 import { initiativesIn } from '@/ext/domain/initiatives';
 import { goalGroups, goalLinkCounts } from '@/ext/domain/manage';
 import { kpiValue } from '@/ext/domain/pace';
 import { numeric } from '@/ext/hooks/useDraftField';
 import { useTx } from '@/ext/i18n';
-import { DraftInput, TwoStepRemove } from './parts';
+import { Dot, DraftInput, LabelField, TwoStepRemove } from './parts';
 
 export function GoalsTab({ data, items }: { data: ExtData; items: Item[] }) {
   const { tx } = useTx();
@@ -46,6 +50,8 @@ export function GoalsTab({ data, items }: { data: ExtData; items: Item[] }) {
 
   return (
     <div className="ext-tab">
+      <FocusAreas data={data} />
+
       {data.goals.length === 0 && <p className="empty">{tx('manage.goals.emptyAll')}</p>}
 
       {groups.map((group) => (
@@ -129,6 +135,92 @@ export function GoalsTab({ data, items }: { data: ExtData; items: Item[] }) {
         <p className="ext-hint">{tx('manage.goals.removeHint')}</p>
       </section>
     </div>
+  );
+}
+
+/**
+ * The focus areas, and the Todoist label each one means.
+ *
+ * The label is the consequential field: momentum counts completions carrying
+ * it, and new initiatives and objectives are tagged with it. Changing it
+ * re-points — nothing already tagged is relabelled — which the hint says,
+ * because the alternative is wondering why momentum went quiet.
+ */
+function FocusAreas({ data }: { data: ExtData }) {
+  const { tx } = useTx();
+  const { snapshot } = useData();
+  const update = useExt((state) => state.update);
+  const [draft, setDraft] = useState('');
+
+  const add = () => {
+    const name = draft.trim();
+    if (!name) return;
+    update((current) => addFocusArea(current, name));
+    setDraft('');
+  };
+
+  return (
+    <section className="card ext-focusareas">
+      <h2 className="ext-cardtitle">
+        {tx('manage.focus.title')}
+        <span className="ext-count">{data.focusAreas.length}</span>
+      </h2>
+
+      {data.focusAreas.length === 0 && <p className="ext-hint">{tx('manage.focus.none')}</p>}
+
+      {data.focusAreas.map((area) => (
+        <div className="ext-focusrow" key={area.id}>
+          <Dot
+            color={area.color}
+            label={tx('manage.focus.colour')}
+            onClick={() => update((c) => updateFocusArea(c, area.id, {
+              color: nextPaletteColor(area.color),
+            }))}
+          />
+          <DraftInput
+            value={area.name}
+            ariaLabel={tx('manage.focus.name')}
+            onCommit={(name) => update((c) => updateFocusArea(c, area.id, { name }))}
+          />
+          <DraftInput
+            className="ext-shortfield"
+            value={area.short}
+            ariaLabel={tx('manage.focus.short')}
+            onCommit={(short) => update((c) => updateFocusArea(c, area.id, { short }))}
+          />
+          <LabelField
+            label={`${tx('manage.focus.label')} — ${area.name}`}
+            value={area.label}
+            choices={focusLabelChoices(snapshot, data.settings, data.focusAreas, area.id)}
+            onChange={(label) => update((c) => updateFocusArea(c, area.id, { label }))}
+          />
+          <DraftInput
+            className="ext-whyfield"
+            value={area.why}
+            ariaLabel={`${tx('manage.focus.why')} — ${area.name}`}
+            parse={(text) => text.trim()}
+            onCommit={(why) => update((c) => updateFocusArea(c, area.id, { why }))}
+          />
+          <TwoStepRemove onRemove={() => update((c) => removeFocusArea(c, area.id))} />
+        </div>
+      ))}
+
+      <div className="ext-addrow ext-focusadd">
+        <input
+          className="textfield"
+          placeholder={tx('manage.focus.addPlaceholder')}
+          aria-label={tx('manage.focus.add')}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={(event) => { if (event.key === 'Enter') add(); }}
+        />
+        <button className="btn sm" disabled={!draft.trim()} onClick={add}>
+          {tx('manage.add')}
+        </button>
+      </div>
+
+      <p className="ext-hint">{tx('manage.focus.hint')}</p>
+    </section>
   );
 }
 

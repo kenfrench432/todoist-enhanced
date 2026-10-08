@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { item } from '@/test/items';
 import { defaultSettings } from '@/ext/data/defaults';
 import type { Customer } from '@/ext/data/types';
-import { customerLabelOf, customerLabelsOf, isMarkerLabel, slug, swapPrefixedLabel } from './labels';
+import { emptySnapshot, type Label, type Snapshot } from '@/domain/types';
+import type { FocusArea } from '@/ext/data/types';
+import {
+  customerLabelChoices, customerLabelOf, customerLabelsOf, focusLabelChoices,
+  isMarkerLabel, slug, swapPrefixedLabel,
+} from './labels';
 
 const settings = defaultSettings();
 
@@ -119,5 +124,65 @@ describe('swapPrefixedLabel', () => {
   it('keeps the order of the labels that stay', () => {
     expect(swapPrefixedLabel(['a', 'status-x', 'b', 'c'], 'status-', 'y'))
       .toEqual(['a', 'b', 'c', 'status-y']);
+  });
+});
+
+function snapshotWith(names: string[]): Snapshot {
+  const snapshot = emptySnapshot();
+  names.forEach((name, index) => {
+    snapshot.labels[`l${index}`] =
+      { id: `l${index}`, name, color: 'charcoal', is_deleted: false } as Label;
+  });
+  return snapshot;
+}
+
+const area = (id: string, label: string): FocusArea =>
+  ({ id, name: id, short: id, label, color: 'blue', why: '' });
+
+describe('customerLabelChoices', () => {
+  const snapshot = snapshotWith(['avon', 'aston-martin', 'engagement', 'focus-x', 'est-30']);
+
+  /* A customer whose label was `engagement` would claim every engagement in
+     the account. */
+  it('offers real labels and never a marker', () => {
+    expect(customerLabelChoices(snapshot, settings, CUSTOMERS, 'avon').map((c) => c.name))
+      .toEqual(['avon']);
+  });
+
+  it('leaves out a label another customer already means', () => {
+    const choices = customerLabelChoices(snapshot, settings, CUSTOMERS, 'aston');
+    expect(choices.map((c) => c.name)).toEqual(['aston-martin']);
+    expect(choices.map((c) => c.name)).not.toContain('avon');
+  });
+
+  /* A picker that silently dropped the current value would read as having
+     lost the setting. */
+  it('always offers what is already chosen, flagged when Todoist lacks it', () => {
+    const orphan = [customer('new', 'never-created')];
+    const choices = customerLabelChoices(snapshot, settings, orphan, 'new');
+    expect(choices[0]).toEqual({ name: 'never-created', missing: true });
+    expect(choices.some((c) => c.name === 'avon' && !c.missing)).toBe(true);
+  });
+});
+
+describe('focusLabelChoices', () => {
+  const snapshot = snapshotWith(['focus-one', 'focus-two', 'avon', 'engagement']);
+  const areas = [area('a', 'focus-one'), area('b', 'focus-two')];
+
+  it('offers only labels carrying the focus prefix', () => {
+    expect(focusLabelChoices(snapshot, settings, [area('a', 'focus-one')], 'a')
+      .map((c) => c.name)).toEqual(['focus-one', 'focus-two']);
+  });
+
+  it('leaves out one another area already means', () => {
+    expect(focusLabelChoices(snapshot, settings, areas, 'a').map((c) => c.name))
+      .toEqual(['focus-one']);
+  });
+
+  /* The shipped defaults point at labels a fresh account has never had. */
+  it('offers a default’s label even though Todoist has not got it', () => {
+    const fresh = [area('fw', 'focus-maturity-framework')];
+    const choices = focusLabelChoices(snapshot, settings, fresh, 'fw');
+    expect(choices[0]).toEqual({ name: 'focus-maturity-framework', missing: true });
   });
 });
